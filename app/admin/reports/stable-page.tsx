@@ -20,7 +20,8 @@ export default function StableReportsPage() {
     setError(null);
     
     try {
-      const response = await fetch('/api/reports');
+      // シンプルなAPIエンドポイントを使用
+      const response = await fetch('/api/reports/simple');
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
