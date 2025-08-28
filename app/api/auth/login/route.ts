@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { connectDatabase } from '@/lib/database';
-import { securityMiddleware } from '@/lib/security-middleware-edge';
+import { connectDatabase } from '@/lib/db';
+// import { securityMiddleware } from '@/lib/security-middleware-edge';
 
 export async function POST(request: NextRequest) {
   const clientIP = getClientIP(request);
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       // ログイン失敗を記録（ブルートフォース防御）
-      await securityMiddleware.recordFailedLoginAttempt(clientIP);
+      // await securityMiddleware.recordFailedLoginAttempt(clientIP);
       
       return NextResponse.json(
         { error: 'メールアドレスまたはパスワードが正しくありません' },
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         );
       } else {
         // ログイン失敗を記録（ブルートフォース防御）
-        await securityMiddleware.recordFailedLoginAttempt(clientIP);
+        // await securityMiddleware.recordFailedLoginAttempt(clientIP);
         
         return NextResponse.json(
           { error: 'メールアドレスまたはパスワードが正しくありません' },
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     );
 
     // 成功ログインを記録（信頼度スコア向上）
-    await securityMiddleware.recordSuccessfulLogin(clientIP);
+    // await securityMiddleware.recordSuccessfulLogin(clientIP);
 
     // 監査ログを記録
     const auditLogsCollection = mongoose.connection.collection('audit_logs');

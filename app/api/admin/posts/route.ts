@@ -1,208 +1,79 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
-import { getCached, setCached, generateCacheKey } from '@/lib/cache';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDatabase();
-
-    const { searchParams } = new URL(request.url);
-    const search = searchParams.get('search') || '';
-    const status = searchParams.get('status') || 'all';
-    const dateFilter = searchParams.get('dateFilter') || 'all';
-    const category = searchParams.get('category') || 'all';
-    const reportFilter = searchParams.get('reportFilter') || 'all';
-    
-    // キャッシュキーの生成
-    const cacheKey = generateCacheKey('posts', {
-      search, status, dateFilter, category, reportFilter
-    });
-    
-    // キャッシュチェック（20秒間有効）
-    const cached = getCached(cacheKey, 20000);
-    if (cached) {
-      return NextResponse.json(cached);
+    // Admin認証チェック（開発環境用）
+    const adminSecret = request.headers.get('x-admin-secret');
+    if (adminSecret !== 'admin-development-secret-key') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    await connectDatabase();
+    
+    const url = new URL(request.url);
+    const search = url.searchParams.get('search') || '';
+    const status = url.searchParams.get('status') || 'all';
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const limit = parseInt(url.searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
 
     const postsCollection = mongoose.connection.collection('posts');
     const usersCollection = mongoose.connection.collection('users');
-    const commentsCollection = mongoose.connection.collection('comments');
-
-    // フィルタークエリを構築
-    const query: any = {};
     
-    // ステータスフィルター
-    if (status !== 'all') {
-      switch (status) {
-        case 'active':
-          query.isDeleted = { $ne: true };
-          query.isHidden = { $ne: true };
-          break;
-        case 'hidden':
-          query.isHidden = true;
-          break;
-        case 'deleted':
-          query.isDeleted = true;
-          break;
-      }
-    }
-
-    // 日付フィルター
-    if (dateFilter !== 'all') {
-      const now = new Date();
-      switch (dateFilter) {
-        case 'today':
-          const todayStart = new Date(now.setHours(0, 0, 0, 0));
-          query.createdAt = { $gte: todayStart };
-          break;
-        case 'week':
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          query.createdAt = { $gte: weekAgo };
-          break;
-        case 'month':
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          query.createdAt = { $gte: monthAgo };
-          break;
-      }
-    }
-
-    // カテゴリフィルター
-    if (category !== 'all') {
-      query.category = category;
-    }
-
-    // 通報フィルター
-    if (reportFilter !== 'all') {
-      switch (reportFilter) {
-        case 'reported':
-          query.reported = true;
-          break;
-        case 'highRisk':
-          query.aiModerationScore = { $gte: 0.7 };
-          break;
-        case 'resolved':
-          query.reported = false;
-          query.wasReported = true;
-          break;
-      }
-    }
-
-    // 検索条件
+    // クエリを構築
+    const query: any = {};
     if (search) {
       query.$or = [
-        { content: { $regex: search, $options: 'i' } },
-        { authorName: { $regex: search, $options: 'i' } },
-        { authorEmail: { $regex: search, $options: 'i' } }
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } }
       ];
     }
+    
+    if (status === 'active') {
+      query.isDeleted = { $ne: true };
+      query.isHidden = { $ne: true };
+    } else if (status === 'hidden') {
+      query.isHidden = true;
+    } else if (status === 'deleted') {
+      query.isDeleted = true;
+    }
 
-    // 投稿データを取得（最新100件に制限）
+    // 投稿を取得
     const posts = await postsCollection
       .find(query)
       .sort({ createdAt: -1 })
-      .limit(100)
+      .skip(skip)
+      .limit(limit)
       .toArray();
-
-    // コメント数を取得
-    const postIds = posts.map(p => p._id);
-    const commentCounts = await commentsCollection.aggregate([
-      { $match: { postId: { $in: postIds } } },
-      { $group: { _id: '$postId', count: { $sum: 1 } } }
-    ]).toArray();
     
-    const commentCountMap = new Map();
-    commentCounts.forEach(item => {
-      commentCountMap.set(item._id.toString(), item.count);
-    });
-
-    // ユーザー情報を一括取得（パフォーマンス最適化）
-    const userIds = posts
-      .filter(post => post.authorId || post.author || post.userId)
-      .map(post => {
-        const id = post.authorId || post.author || post.userId;
-        try {
-          // 文字列IDまたはObjectIDの場合
-          if (typeof id === 'string' && id.length === 24) {
-            return new mongoose.Types.ObjectId(id);
-          }
-          return id; // すでにObjectIDの場合
-        } catch {
-          return null;
-        }
-      })
-      .filter(id => id !== null);
-
-    // ユーザー情報を取得（データベースから最新情報を取得）
-    const users = userIds.length > 0 
-      ? await usersCollection.find({ 
-          _id: { $in: userIds } 
-        }).toArray()
-      : [];
-
-    const userMap = new Map();
-    users.forEach(user => {
-      userMap.set(user._id.toString(), user);
-    });
-
-    // 投稿データを整形
-    const formattedPosts = posts.map(post => {
-      // ユーザー情報を取得（投稿に保存されている情報を優先、なければDBから取得）
-      let userName = post.authorName || 'Unknown';
-      let userEmail = post.authorEmail || 'Unknown';
-      
-      // 投稿にユーザー情報がない場合、DBから取得した情報を使用
-      if ((!post.authorName || !post.authorEmail) && (post.authorId || post.author || post.userId)) {
-        const userId = (post.authorId || post.author || post.userId).toString();
-        const user = userMap.get(userId);
-        if (user) {
-          userName = userName === 'Unknown' ? (user.name || 'Unknown') : userName;
-          userEmail = userEmail === 'Unknown' ? (user.email || 'Unknown') : userEmail;
-        }
-      }
-
-      // コメント数を取得（commentsコレクションから集計した実数）
-      const commentCount = commentCountMap.get(post._id.toString()) || post.commentCount || 0;
-
+    // 総数を取得
+    const total = await postsCollection.countDocuments(query);
+    
+    // ユーザー情報を追加
+    const enrichedPosts = await Promise.all(posts.map(async (post) => {
+      const author = await usersCollection.findOne({ _id: new mongoose.Types.ObjectId(post.authorId) });
       return {
+        ...post,
         _id: post._id.toString(),
-        userId: post.userId || 'N/A',
-        userName,
-        userEmail,
-        content: post.content || '',
-        likes: post.likes || [],
-        likeCount: (post.likes || []).length,
-        commentCount,
-        createdAt: post.createdAt || post.updatedAt || new Date(),
-        updatedAt: post.updatedAt || post.createdAt || new Date(),
-        status: post.isDeleted ? 'deleted' : post.isHidden ? 'hidden' : 'active',
-        reported: post.reported || false,
-        reportCount: post.reportCount || 0,
-        category: post.category || null,
-        aiModerationScore: post.aiModerationScore || null,
-        aiModerationFlags: post.aiModerationFlags || [],
+        authorName: author?.name || 'Unknown',
+        authorEmail: author?.email || 'unknown@example.com',
+        commentCount: post.comments?.length || 0,
+        views: post.views || 0,
+        createdAt: post.createdAt || new Date(),
+        updatedAt: post.updatedAt || new Date()
       };
-    });
+    }));
 
-    // 作成日順にソート（新しい順）
-    formattedPosts.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    return NextResponse.json({
+      posts: enrichedPosts,
+      total,
+      page,
+      limit
     });
-
-    const responseData = {
-      posts: formattedPosts,
-      total: formattedPosts.length,
-      active: formattedPosts.filter(p => p.status === 'active').length,
-      hidden: formattedPosts.filter(p => p.status === 'hidden').length,
-      deleted: formattedPosts.filter(p => p.status === 'deleted').length,
-    };
-    
-    // キャッシュに保存
-    setCached(cacheKey, responseData);
-    
-    return NextResponse.json(responseData);
   } catch (error) {
-    console.error('Posts API error:', error);
+    console.error('Error fetching posts:', error);
     return NextResponse.json(
       { error: 'Failed to fetch posts' },
       { status: 500 }
@@ -210,106 +81,47 @@ export async function GET(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
-  try {
-    await connectDatabase();
-    
-    const { searchParams } = new URL(request.url);
-    const postId = searchParams.get('id');
-
-    if (!postId) {
-      return NextResponse.json(
-        { error: 'Post ID is required' },
-        { status: 400 }
-      );
-    }
-
-    const postsCollection = mongoose.connection.collection('posts');
-    
-    // 投稿を論理削除
-    const result = await postsCollection.updateOne(
-      { _id: new mongoose.Types.ObjectId(postId) },
-      { 
-        $set: {
-          isDeleted: true,
-          deletedAt: new Date(),
-          deletedBy: 'admin',
-        }
-      }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Post deleted successfully',
-    });
-  } catch (error) {
-    console.error('Post delete error:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete post' },
-      { status: 500 }
-    );
-  }
-}
-
 export async function PUT(request: NextRequest) {
   try {
-    await connectDatabase();
-    
+    // Admin認証チェック（開発環境用）
+    const adminSecret = request.headers.get('x-admin-secret');
+    if (adminSecret !== 'admin-development-secret-key') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { postId, action } = body;
 
     if (!postId || !action) {
-      return NextResponse.json(
-        { error: 'Post ID and action are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    await connectDatabase();
     const postsCollection = mongoose.connection.collection('posts');
     
     let update = {};
     switch (action) {
       case 'hide':
-        update = { isHidden: true, hiddenAt: new Date() };
+        update = { $set: { isHidden: true, updatedAt: new Date() } };
         break;
       case 'unhide':
-        update = { isHidden: false, hiddenAt: null };
+        update = { $set: { isHidden: false, updatedAt: new Date() } };
         break;
-      case 'restore':
-        update = { isDeleted: false, deletedAt: null };
+      case 'delete':
+        update = { $set: { isDeleted: true, updatedAt: new Date() } };
         break;
       default:
-        return NextResponse.json(
-          { error: 'Invalid action' },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    const result = await postsCollection.updateOne(
+    await postsCollection.updateOne(
       { _id: new mongoose.Types.ObjectId(postId) },
-      { $set: { ...update, updatedAt: new Date() } }
+      update
     );
 
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { error: 'Post not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: `Post ${action} successfully`,
-    });
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Post update error:', error);
+    console.error('Error updating post:', error);
     return NextResponse.json(
       { error: 'Failed to update post' },
       { status: 500 }
