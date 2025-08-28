@@ -30,7 +30,6 @@ import {
   Skeleton,
   LinearProgress
 } from '@mui/material';
-import Grid from '@mui/material/Grid2';
 import {
   Visibility,
   CheckCircle,
@@ -235,75 +234,67 @@ export default function PublicReportsManagement() {
 
       {/* 統計情報 */}
       {stats && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  総通報数
-                </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Card sx={{ flex: '1 1 250px', minWidth: 250 }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                総通報数
+              </Typography>
+              <Typography variant="h4">
+                {stats.totalReports}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px', minWidth: 250 }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                未処理
+              </Typography>
+              <Typography variant="h4" color="warning.main">
+                {stats.pendingCount}
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={stats.pendingCount / Math.max(stats.totalReports, 1) * 100} 
+                color="warning"
+                sx={{ mt: 1 }}
+              />
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px', minWidth: 250 }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                解決率
+              </Typography>
+              <Typography variant="h4" color="success.main">
+                {stats.resolutionRate.toFixed(0)}%
+              </Typography>
+              <LinearProgress 
+                variant="determinate" 
+                value={stats.resolutionRate} 
+                color="success"
+                sx={{ mt: 1 }}
+              />
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px', minWidth: 250 }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                平均優先度
+              </Typography>
+              <Box display="flex" alignItems="center" gap={1}>
                 <Typography variant="h4">
-                  {stats.totalReports}
+                  {stats.avgPriority.toFixed(1)}
                 </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  未処理
-                </Typography>
-                <Typography variant="h4" color="warning.main">
-                  {stats.pendingCount}
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={stats.pendingCount / Math.max(stats.totalReports, 1) * 100} 
-                  color="warning"
-                  sx={{ mt: 1 }}
+                <Chip 
+                  size="small" 
+                  label={getPriorityLabel(stats.avgPriority)}
+                  color={getPriorityColor(stats.avgPriority)}
                 />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  解決率
-                </Typography>
-                <Typography variant="h4" color="success.main">
-                  {stats.resolutionRate.toFixed(0)}%
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={stats.resolutionRate} 
-                  color="success"
-                  sx={{ mt: 1 }}
-                />
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  平均優先度
-                </Typography>
-                <Box display="flex" alignItems="center" gap={1}>
-                  <Typography variant="h4">
-                    {stats.avgPriority.toFixed(1)}
-                  </Typography>
-                  <Chip 
-                    size="small" 
-                    label={getPriorityLabel(stats.avgPriority)}
-                    color={getPriorityColor(stats.avgPriority)}
-                  />
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+              </Box>
+            </CardContent>
+          </Card>
+        </Box>
       )}
 
       {/* フィルター */}
@@ -481,42 +472,46 @@ export default function PublicReportsManagement() {
         <DialogContent>
           {selectedReport && (
             <Box>
-              <Grid container spacing={2}>
-                <Grid size={6}>
-                  <Typography variant="subtitle2">ID:</Typography>
-                  <Typography variant="body2">{selectedReport._id}</Typography>
-                </Grid>
-                <Grid size={6}>
-                  <Typography variant="subtitle2">カテゴリ:</Typography>
-                  <Typography variant="body2">{selectedReport.category}</Typography>
-                </Grid>
-                <Grid size={12}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', gap: 4 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2">ID:</Typography>
+                    <Typography variant="body2">{selectedReport._id}</Typography>
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2">カテゴリ:</Typography>
+                    <Typography variant="body2">{selectedReport.category}</Typography>
+                  </Box>
+                </Box>
+                <Box>
                   <Typography variant="subtitle2">説明:</Typography>
                   <Typography variant="body2">{selectedReport.description}</Typography>
-                </Grid>
-                <Grid size={6}>
-                  <Typography variant="subtitle2">優先度:</Typography>
-                  <Chip 
-                    label={`${selectedReport.priority} - ${getPriorityLabel(selectedReport.priority)}`}
-                    color={getPriorityColor(selectedReport.priority)}
-                    size="small"
-                  />
-                </Grid>
-                <Grid size={6}>
-                  <Typography variant="subtitle2">虚偽通報スコア:</Typography>
-                  <Chip 
-                    label={`${selectedReport.falseReportScore || 0}%`}
-                    color={getFalseReportColor(selectedReport.falseReportScore)}
-                    size="small"
-                  />
-                </Grid>
-                <Grid size={12}>
+                </Box>
+                <Box sx={{ display: 'flex', gap: 4 }}>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2">優先度:</Typography>
+                    <Chip 
+                      label={`${selectedReport.priority} - ${getPriorityLabel(selectedReport.priority)}`}
+                      color={getPriorityColor(selectedReport.priority)}
+                      size="small"
+                    />
+                  </Box>
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2">虚偽通報スコア:</Typography>
+                    <Chip 
+                      label={`${selectedReport.falseReportScore || 0}%`}
+                      color={getFalseReportColor(selectedReport.falseReportScore)}
+                      size="small"
+                    />
+                  </Box>
+                </Box>
+                <Box>
                   <Typography variant="subtitle2">作成日時:</Typography>
                   <Typography variant="body2">
                     {new Date(selectedReport.createdAt).toLocaleString()}
                   </Typography>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
               
               {selectedReport.metadata.targetContent && (
                 <Box mt={2}>
@@ -532,28 +527,20 @@ export default function PublicReportsManagement() {
               {selectedReport.resolution && (
                 <Box mt={2}>
                   <Typography variant="subtitle2" color="primary">解決情報:</Typography>
-                  <Grid container spacing={1} mt={1}>
-                    <Grid size={12}>
-                      <Typography variant="body2">
-                        アクション: {selectedReport.resolution.action}
-                      </Typography>
-                    </Grid>
-                    <Grid size={12}>
-                      <Typography variant="body2">
-                        解決者: {selectedReport.resolution.resolvedBy}
-                      </Typography>
-                    </Grid>
-                    <Grid size={12}>
-                      <Typography variant="body2">
-                        解決日時: {new Date(selectedReport.resolution.resolvedAt).toLocaleString()}
-                      </Typography>
-                    </Grid>
-                    <Grid size={12}>
-                      <Typography variant="body2">
-                        メモ: {selectedReport.resolution.notes}
-                      </Typography>
-                    </Grid>
-                  </Grid>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 1 }}>
+                    <Typography variant="body2">
+                      アクション: {selectedReport.resolution.action}
+                    </Typography>
+                    <Typography variant="body2">
+                      解決者: {selectedReport.resolution.resolvedBy}
+                    </Typography>
+                    <Typography variant="body2">
+                      解決日時: {new Date(selectedReport.resolution.resolvedAt).toLocaleString()}
+                    </Typography>
+                    <Typography variant="body2">
+                      メモ: {selectedReport.resolution.notes}
+                    </Typography>
+                  </Box>
                 </Box>
               )}
             </Box>
