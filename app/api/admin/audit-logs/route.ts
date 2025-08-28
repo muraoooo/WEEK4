@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     // ソート条件
     const sortField = searchParams.get('sortBy') || 'timestamp';
     const sortOrder = searchParams.get('order') === 'asc' ? 1 : -1;
-    const sort = { [sortField]: sortOrder };
+    const sort: any = { [sortField]: sortOrder };
 
     // データ取得
     const [logs, total] = await Promise.all([
