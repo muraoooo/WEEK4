@@ -80,6 +80,7 @@ interface ReportStats {
 }
 
 export default function PublicReportsManagement() {
+  const [mounted, setMounted] = useState(false);
   const [reports, setReports] = useState<Report[]>([]);
   const [stats, setStats] = useState<ReportStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,6 +95,11 @@ export default function PublicReportsManagement() {
     category: '',
     sortBy: 'priority'
   });
+
+  // CSR対応 - マウント確認
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -170,8 +176,10 @@ export default function PublicReportsManagement() {
   };
 
   useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+    if (mounted) {
+      fetchReports();
+    }
+  }, [mounted, fetchReports]);
 
   const getPriorityColor = (priority: number) => {
     if (priority >= 7) return 'error';
@@ -202,6 +210,15 @@ export default function PublicReportsManagement() {
     if (score >= 40) return 'warning';
     return 'success';
   };
+
+  // CSRレンダリング待機
+  if (!mounted) {
+    return (
+      <Box sx={{ p: 3, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ p: 3 }}>
