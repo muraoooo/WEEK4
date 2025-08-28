@@ -3,9 +3,9 @@
 import dynamic from 'next/dynamic';
 import { Box, CircularProgress } from '@mui/material';
 
-// 権限チェックなしの公開版を使用
-const PublicReportsManagement = dynamic(
-  () => import('./public-page'),
+// セーフモード版を使用（エラーデバッグ用）
+const SafeReportsManagement = dynamic(
+  () => import('./safe-page'),
   { 
     ssr: false,
     loading: () => (
@@ -17,5 +17,5 @@ const PublicReportsManagement = dynamic(
 );
 
 export default function ReportsPage() {
-  return <PublicReportsManagement />;
+  return <SafeReportsManagement />;
 }
