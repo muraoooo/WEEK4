@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDatabase from '@/lib/database';
+import { connectDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 
 // AIモデレーション分析を実行する関数（実際のAI APIの代わりにルールベースの分析を実装）

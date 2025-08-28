@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDatabase from '@/lib/database';
+import { connectDatabase } from '@/lib/db';
 
 // GET: 全設定の取得
 export async function GET(request: NextRequest) {

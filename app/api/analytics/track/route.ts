@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import crypto from 'crypto';
-import connectDatabase from '@/lib/database';
+import { connectDatabase } from '@/lib/db';
 import AccessLog from '@/models/AccessLog';
 
 // IPアドレスを匿名化（最後のオクテットを削除してハッシュ化）

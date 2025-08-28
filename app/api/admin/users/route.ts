@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import connectDatabase from '@/lib/database';
+import { connectDatabase } from '@/lib/db';
 import mongoose from 'mongoose';
 import { getCached, setCached, generateCacheKey } from '@/lib/cache';
 
