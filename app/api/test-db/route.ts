@@ -32,12 +32,11 @@ export async function GET(request: NextRequest) {
       database: mongoose.connection.db?.databaseName,
       collections: collectionNames,
       documentCounts: collectionCounts,
-      connectionState: {
-        0: 'disconnected',
-        1: 'connected',
-        2: 'connecting',
-        3: 'disconnecting'
-      }[mongoose.connection.readyState]
+      connectionState: mongoose.connection.readyState === 0 ? 'disconnected' :
+                       mongoose.connection.readyState === 1 ? 'connected' :
+                       mongoose.connection.readyState === 2 ? 'connecting' :
+                       mongoose.connection.readyState === 3 ? 'disconnecting' :
+                       'unknown'
     });
   } catch (error) {
     console.error('Database connection error:', error);

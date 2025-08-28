@@ -6,7 +6,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Grid,
   Paper,
   Chip,
   Button,
@@ -28,6 +27,8 @@ import {
   FormControl,
   InputLabel
 } from '@mui/material';
+// @ts-ignore - Grid2 import issue
+const Grid2 = require('@mui/material').Unstable_Grid2 || require('@mui/material').Grid;
 import {
   Report as ReportIcon,
   Warning,
@@ -193,8 +194,8 @@ export default function ContentModerationPage() {
 
       {/* 統計情報 */}
       {statistics && (
-        <Grid container spacing={3} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+        <Grid2 container spacing={3} sx={{ mb: 3 }}>
+          <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Stack spacing={1}>
@@ -218,9 +219,9 @@ export default function ContentModerationPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Stack spacing={1}>
@@ -244,9 +245,9 @@ export default function ContentModerationPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Stack spacing={1}>
@@ -265,9 +266,9 @@ export default function ContentModerationPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
+          </Grid2>
 
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Stack spacing={1}>
@@ -290,8 +291,8 @@ export default function ContentModerationPage() {
                 </Stack>
               </CardContent>
             </Card>
-          </Grid>
-        </Grid>
+          </Grid2>
+        </Grid2>
       )}
 
       {/* フィルター */}

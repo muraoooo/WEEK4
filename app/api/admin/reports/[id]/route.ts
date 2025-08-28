@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Admin認証チェック（開発環境用）
@@ -15,7 +15,7 @@ export async function PUT(
 
     const body = await request.json();
     const { action } = body;
-    const reportId = params.id;
+    const { id: reportId } = await params;
 
     if (!reportId || !action) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
