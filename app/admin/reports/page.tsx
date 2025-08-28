@@ -2,15 +2,15 @@
 
 import dynamic from 'next/dynamic';
 
-// 最小限の動作確認版
-const MinimalReportsPage = dynamic(
-  () => import('./minimal-page'),
+// MUIテスト版
+const TestMUIPage = dynamic(
+  () => import('./test-mui-page'),
   { 
     ssr: false,
-    loading: () => <div>Loading component...</div>
+    loading: () => <div>Loading MUI test...</div>
   }
 );
 
 export default function ReportsPage() {
-  return <MinimalReportsPage />;
+  return <TestMUIPage />;
 }
