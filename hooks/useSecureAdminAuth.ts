@@ -48,8 +48,15 @@ export function useSecureAdminAuth() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || '管理者認証に失敗しました');
+        const errorText = await response.text();
+        let errorMessage = '管理者認証に失敗しました';
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          console.error('Error parsing response:', errorText);
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

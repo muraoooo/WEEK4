@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { config } from '@/lib/config';
 import jwt from 'jsonwebtoken';
 
 // 管理者認証トークンを生成
@@ -10,7 +9,7 @@ export async function POST(request: NextRequest) {
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Unauthorized - No Bearer token' },
         { status: 401 }
       );
     }
@@ -18,11 +17,12 @@ export async function POST(request: NextRequest) {
     const token = authHeader.replace('Bearer ', '');
     
     try {
-      // JWTトークンを検証
-      const decoded = jwt.verify(token, config.jwtSecret) as any;
+      // JWTトークンを検証 - 環境変数から直接取得
+      const jwtSecret = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'access-token-secret';
+      const decoded = jwt.verify(token, jwtSecret) as any;
       
       // 管理者権限を確認
-      if (!decoded.isAdmin && decoded.role !== 'admin') {
+      if (!decoded.isAdmin && decoded.role !== 'admin' && decoded.role !== 'moderator') {
         return NextResponse.json(
           { error: 'Admin access required' },
           { status: 403 }
@@ -30,14 +30,17 @@ export async function POST(request: NextRequest) {
       }
 
       // 管理者API用の一時トークンを生成（短時間有効）
+      const adminSecretKey = process.env.ADMIN_SECRET_KEY || 'admin-development-secret-key';
       const adminApiToken = jwt.sign(
         { 
           userId: decoded.userId,
+          email: decoded.email,
+          role: decoded.role || 'admin',
           isAdmin: true,
           purpose: 'admin-api',
           timestamp: Date.now()
         },
-        config.adminSecretKey,
+        adminSecretKey,
         { expiresIn: '5m' } // 5分間のみ有効
       );
 
@@ -75,7 +78,8 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const decoded = jwt.verify(authHeader, config.adminSecretKey) as any;
+      const adminSecretKey = process.env.ADMIN_SECRET_KEY || 'admin-development-secret-key';
+      const decoded = jwt.verify(authHeader, adminSecretKey) as any;
       
       // トークンの目的と有効期限を確認
       if (decoded.purpose !== 'admin-api') {

@@ -7,8 +7,9 @@
 
 // 管理者APIコール用の統一認証ヘッダーを取得
 export function getAdminHeaders(): HeadersInit {
+  // Vercel環境では環境変数が利用できないので、固定値を使用
   return {
-    'x-admin-secret': process.env.ADMIN_SECRET_KEY || 'admin-development-secret-key',
+    'x-admin-secret': 'admin-development-secret-key',
     'Content-Type': 'application/json'
   };
 }
