@@ -1,35 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { connectDatabase } from '@/lib/db';
-// import { securityMiddleware } from '@/lib/security-middleware-edge';
+import { MongoClient } from 'mongodb';
 
 export async function POST(request: NextRequest) {
-  const clientIP = getClientIP(request);
+  let body;
+  try {
+    body = await request.json();
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'リクエストの形式が正しくありません' },
+      { status: 400 }
+    );
+  }
+
+  const { email, password } = body;
+
+  if (!email || !password) {
+    return NextResponse.json(
+      { error: 'メールアドレスとパスワードは必須です' },
+      { status: 400 }
+    );
+  }
+
+  const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://adimin:gpt5love@cluster0.zu4p8ot.mongodb.net/embrocal?retryWrites=true&w=majority&appName=Cluster0';
+  const client = new MongoClient(MONGODB_URI);
   
   try {
-    const body = await request.json();
-    const { email, password } = body;
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'メールアドレスとパスワードは必須です' },
-        { status: 400 }
-      );
-    }
-
-    // データベース接続
-    await connectDatabase();
-    const mongoose = require('mongoose');
-    const usersCollection = mongoose.connection.collection('users');
+    // MongoDB に直接接続
+    await client.connect();
+    const db = client.db('embrocal');
+    const usersCollection = db.collection('users');
 
     // ユーザーを検索
     const user = await usersCollection.findOne({ email });
 
     if (!user) {
-      // ログイン失敗を記録（ブルートフォース防御）
-      // await securityMiddleware.recordFailedLoginAttempt(clientIP);
-      
+      await client.close();
       return NextResponse.json(
         { error: 'メールアドレスまたはパスワードが正しくありません' },
         { status: 401 }
@@ -49,9 +56,7 @@ export async function POST(request: NextRequest) {
           { $set: { password: hashedPassword } }
         );
       } else {
-        // ログイン失敗を記録（ブルートフォース防御）
-        // await securityMiddleware.recordFailedLoginAttempt(clientIP);
-        
+        await client.close();
         return NextResponse.json(
           { error: 'メールアドレスまたはパスワードが正しくありません' },
           { status: 401 }
@@ -61,6 +66,7 @@ export async function POST(request: NextRequest) {
 
     // ユーザーのステータスを確認
     if (user.status === 'suspended' || user.status === 'banned') {
+      await client.close();
       return NextResponse.json(
         { error: 'アカウントが無効化されています' },
         { status: 403 }
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
     );
 
     // セッションを作成
-    const sessionsCollection = mongoose.connection.collection('user_sessions');
+    const sessionsCollection = db.collection('user_sessions');
     await sessionsCollection.insertOne({
       sessionId: `session_${Date.now()}_${Math.random().toString(36)}`,
       userId: user._id.toString(),
@@ -109,11 +115,8 @@ export async function POST(request: NextRequest) {
       { $set: { lastLoginAt: new Date() } }
     );
 
-    // 成功ログインを記録（信頼度スコア向上）
-    // await securityMiddleware.recordSuccessfulLogin(clientIP);
-
     // 監査ログを記録
-    const auditLogsCollection = mongoose.connection.collection('audit_logs');
+    const auditLogsCollection = db.collection('audit_logs');
     await auditLogsCollection.insertOne({
       timestamp: new Date(),
       action: 'LOGIN',
@@ -161,31 +164,15 @@ export async function POST(request: NextRequest) {
       maxAge: 7 * 24 * 60 * 60 // 7日
     });
 
+    await client.close();
     return response;
 
   } catch (error) {
     console.error('Login error:', error);
+    await client.close();
     return NextResponse.json(
       { error: 'ログイン処理中にエラーが発生しました' },
       { status: 500 }
     );
   }
-}
-
-/**
- * クライアントIPアドレス取得
- */
-function getClientIP(request: NextRequest): string {
-  // プロキシやロードバランサー経由の場合を考慮
-  const xForwardedFor = request.headers.get('x-forwarded-for');
-  if (xForwardedFor) {
-    return xForwardedFor.split(',')[0].trim();
-  }
-
-  const xRealIP = request.headers.get('x-real-ip');
-  if (xRealIP) {
-    return xRealIP.trim();
-  }
-
-  return '127.0.0.1';
 }
