@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic';
 
-// 最終版（完全機能）
-const FinalReportsPage = dynamic(
-  () => import('./final-page'),
+// 安定版（MUIを使わない）
+const StableReportsPage = dynamic(
+  () => import('./stable-page'),
   { 
     ssr: false,
     loading: () => <div>Loading reports...</div>
@@ -12,5 +12,5 @@ const FinalReportsPage = dynamic(
 );
 
 export default function ReportsPage() {
-  return <FinalReportsPage />;
+  return <StableReportsPage />;
 }
