@@ -1,0 +1,1405 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Grid,
+  TextField,
+  Switch,
+  FormControlLabel,
+  Button,
+  Divider,
+  Alert,
+  Tabs,
+  Tab,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Slider,
+  Card,
+  CardContent,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Chip,
+  InputAdornment,
+  CircularProgress,
+} from '@mui/material';
+import {
+  Settings,
+  Security,
+  Notifications,
+  Storage,
+  Email,
+  Save,
+  RestartAlt,
+  Info,
+  Warning,
+  Add,
+  Delete,
+  Edit,
+  Lock,
+  Language,
+  AccessTime,
+  CloudUpload,
+  DataUsage,
+  Shield,
+  Key,
+  Visibility,
+  VisibilityOff,
+} from '@mui/icons-material';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`settings-tabpanel-${index}`}
+      aria-labelledby={`settings-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ py: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+}
+
+interface SystemSettings {
+  general: {
+    siteName: string;
+    siteDescription: string;
+    adminEmail: string;
+    timeZone: string;
+    language: string;
+    maintenanceMode: boolean;
+    maintenanceMessage: string;
+  };
+  security: {
+    enforceHttps: boolean;
+    sessionTimeout: number;
+    maxLoginAttempts: number;
+    passwordMinLength: number;
+    requireStrongPassword: boolean;
+    twoFactorAuth: boolean;
+    ipWhitelist: string[];
+    ipBlacklist: string[];
+    csrfProtection: boolean;
+    xssProtection: boolean;
+  };
+  email: {
+    smtpHost: string;
+    smtpPort: number;
+    smtpUser: string;
+    smtpPassword: string;
+    smtpSecure: boolean;
+    fromEmail: string;
+    fromName: string;
+    testEmailAddress: string;
+  };
+  storage: {
+    maxUploadSize: number;
+    allowedFileTypes: string[];
+    storageLocation: string;
+    enableCdn: boolean;
+    cdnUrl: string;
+    autoBackup: boolean;
+    backupInterval: number;
+    retentionDays: number;
+  };
+  notifications: {
+    emailNotifications: boolean;
+    adminAlerts: boolean;
+    userRegistration: boolean;
+    loginAlerts: boolean;
+    securityAlerts: boolean;
+    systemUpdates: boolean;
+    performanceAlerts: boolean;
+    alertThreshold: number;
+  };
+  api: {
+    rateLimit: number;
+    apiTimeout: number;
+    enableCors: boolean;
+    corsOrigins: string[];
+    apiKey: string;
+    webhookUrl: string;
+    enableWebhooks: boolean;
+  };
+}
+
+export default function AdminSettings() {
+  const [tabValue, setTabValue] = useState(0);
+  const [settings, setSettings] = useState<SystemSettings>({
+    general: {
+      siteName: 'Secure Session System',
+      siteDescription: 'セキュアなセッション管理システム',
+      adminEmail: 'admin@example.com',
+      timeZone: 'Asia/Tokyo',
+      language: 'ja',
+      maintenanceMode: false,
+      maintenanceMessage: 'システムメンテナンス中です。しばらくお待ちください。',
+    },
+    security: {
+      enforceHttps: true,
+      sessionTimeout: 30,
+      maxLoginAttempts: 5,
+      passwordMinLength: 8,
+      requireStrongPassword: true,
+      twoFactorAuth: false,
+      ipWhitelist: [],
+      ipBlacklist: [],
+      csrfProtection: true,
+      xssProtection: true,
+    },
+    email: {
+      smtpHost: 'smtp.gmail.com',
+      smtpPort: 587,
+      smtpUser: '',
+      smtpPassword: '',
+      smtpSecure: true,
+      fromEmail: 'noreply@example.com',
+      fromName: 'Secure Session System',
+      testEmailAddress: '',
+    },
+    storage: {
+      maxUploadSize: 10,
+      allowedFileTypes: ['jpg', 'png', 'pdf', 'doc', 'docx'],
+      storageLocation: 'local',
+      enableCdn: false,
+      cdnUrl: '',
+      autoBackup: true,
+      backupInterval: 24,
+      retentionDays: 30,
+    },
+    notifications: {
+      emailNotifications: true,
+      adminAlerts: true,
+      userRegistration: true,
+      loginAlerts: false,
+      securityAlerts: true,
+      systemUpdates: true,
+      performanceAlerts: true,
+      alertThreshold: 80,
+    },
+    api: {
+      rateLimit: 100,
+      apiTimeout: 30000,
+      enableCors: true,
+      corsOrigins: ['http://localhost:3000'],
+      apiKey: '',
+      webhookUrl: '',
+      enableWebhooks: false,
+    },
+  });
+  
+  const [loading, setLoading] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [newIpWhitelist, setNewIpWhitelist] = useState('');
+  const [newIpBlacklist, setNewIpBlacklist] = useState('');
+  const [newCorsOrigin, setNewCorsOrigin] = useState('');
+  const [showApiKey, setShowApiKey] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/admin/settings');
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data);
+      }
+    } catch (err) {
+      console.error('Settings fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+      setSaveSuccess(false);
+      setError(null);
+
+      const response = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      if (response.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        throw new Error('設定の保存に失敗しました');
+      }
+    } catch (err) {
+      setError('設定の保存中にエラーが発生しました');
+      console.error('Save settings error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    fetchSettings();
+    setSaveSuccess(false);
+    setError(null);
+  };
+
+  const handleGenerateApiKey = () => {
+    const newKey = `sk_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
+    setSettings({
+      ...settings,
+      api: {
+        ...settings.api,
+        apiKey: newKey,
+      },
+    });
+  };
+
+  const addIpToWhitelist = () => {
+    if (newIpWhitelist && !settings.security.ipWhitelist.includes(newIpWhitelist)) {
+      setSettings({
+        ...settings,
+        security: {
+          ...settings.security,
+          ipWhitelist: [...settings.security.ipWhitelist, newIpWhitelist],
+        },
+      });
+      setNewIpWhitelist('');
+    }
+  };
+
+  const removeFromWhitelist = (ip: string) => {
+    setSettings({
+      ...settings,
+      security: {
+        ...settings.security,
+        ipWhitelist: settings.security.ipWhitelist.filter((item) => item !== ip),
+      },
+    });
+  };
+
+  const addIpToBlacklist = () => {
+    if (newIpBlacklist && !settings.security.ipBlacklist.includes(newIpBlacklist)) {
+      setSettings({
+        ...settings,
+        security: {
+          ...settings.security,
+          ipBlacklist: [...settings.security.ipBlacklist, newIpBlacklist],
+        },
+      });
+      setNewIpBlacklist('');
+    }
+  };
+
+  const removeFromBlacklist = (ip: string) => {
+    setSettings({
+      ...settings,
+      security: {
+        ...settings.security,
+        ipBlacklist: settings.security.ipBlacklist.filter((item) => item !== ip),
+      },
+    });
+  };
+
+  const addCorsOrigin = () => {
+    if (newCorsOrigin && !settings.api.corsOrigins.includes(newCorsOrigin)) {
+      setSettings({
+        ...settings,
+        api: {
+          ...settings.api,
+          corsOrigins: [...settings.api.corsOrigins, newCorsOrigin],
+        },
+      });
+      setNewCorsOrigin('');
+    }
+  };
+
+  const removeCorsOrigin = (origin: string) => {
+    setSettings({
+      ...settings,
+      api: {
+        ...settings.api,
+        corsOrigins: settings.api.corsOrigins.filter((item) => item !== origin),
+      },
+    });
+  };
+
+  if (loading && !settings) {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  return (
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" gutterBottom>
+          システム設定
+        </Typography>
+        <Box>
+          <Button
+            variant="outlined"
+            startIcon={<RestartAlt />}
+            onClick={handleReset}
+            sx={{ mr: 2 }}
+            disabled={loading}
+          >
+            リセット
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<Save />}
+            onClick={handleSave}
+            disabled={loading}
+          >
+            保存
+          </Button>
+        </Box>
+      </Box>
+
+      {saveSuccess && (
+        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSaveSuccess(false)}>
+          設定が正常に保存されました
+        </Alert>
+      )}
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
+
+      <Paper sx={{ width: '100%', mb: 2 }}>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab icon={<Settings />} label="一般設定" />
+          <Tab icon={<Security />} label="セキュリティ" />
+          <Tab icon={<Email />} label="メール設定" />
+          <Tab icon={<Storage />} label="ストレージ" />
+          <Tab icon={<Notifications />} label="通知設定" />
+          <Tab icon={<DataUsage />} label="API設定" />
+        </Tabs>
+
+        <Box sx={{ p: 3 }}>
+          <TabPanel value={tabValue} index={0}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="サイト名"
+                  value={settings.general.siteName}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, siteName: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="管理者メールアドレス"
+                  type="email"
+                  value={settings.general.adminEmail}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, adminEmail: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="サイト説明"
+                  multiline
+                  rows={3}
+                  value={settings.general.siteDescription}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      general: { ...settings.general, siteDescription: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>タイムゾーン</InputLabel>
+                  <Select
+                    value={settings.general.timeZone}
+                    label="タイムゾーン"
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: { ...settings.general, timeZone: e.target.value },
+                      })
+                    }
+                  >
+                    <MenuItem value="Asia/Tokyo">Asia/Tokyo (JST)</MenuItem>
+                    <MenuItem value="UTC">UTC</MenuItem>
+                    <MenuItem value="America/New_York">America/New_York (EST)</MenuItem>
+                    <MenuItem value="Europe/London">Europe/London (GMT)</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>言語</InputLabel>
+                  <Select
+                    value={settings.general.language}
+                    label="言語"
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: { ...settings.general, language: e.target.value },
+                      })
+                    }
+                  >
+                    <MenuItem value="ja">日本語</MenuItem>
+                    <MenuItem value="en">English</MenuItem>
+                    <MenuItem value="zh">中文</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  メンテナンスモード
+                </Typography>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.general.maintenanceMode}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          general: { ...settings.general, maintenanceMode: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="メンテナンスモードを有効にする"
+                />
+                {settings.general.maintenanceMode && (
+                  <TextField
+                    fullWidth
+                    label="メンテナンスメッセージ"
+                    multiline
+                    rows={2}
+                    value={settings.general.maintenanceMessage}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        general: { ...settings.general, maintenanceMessage: e.target.value },
+                      })
+                    }
+                    sx={{ mt: 2 }}
+                  />
+                )}
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  セッション設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="セッションタイムアウト（分）"
+                  type="number"
+                  value={settings.security.sessionTimeout}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      security: { ...settings.security, sessionTimeout: parseInt(e.target.value) },
+                    })
+                  }
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">分</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="最大ログイン試行回数"
+                  type="number"
+                  value={settings.security.maxLoginAttempts}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      security: { ...settings.security, maxLoginAttempts: parseInt(e.target.value) },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  パスワードポリシー
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="最小パスワード長"
+                  type="number"
+                  value={settings.security.passwordMinLength}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      security: { ...settings.security, passwordMinLength: parseInt(e.target.value) },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.security.requireStrongPassword}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          security: { ...settings.security, requireStrongPassword: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="強力なパスワードを要求"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  セキュリティ機能
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.security.enforceHttps}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          security: { ...settings.security, enforceHttps: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="HTTPS強制"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.security.twoFactorAuth}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          security: { ...settings.security, twoFactorAuth: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="2段階認証"
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.security.csrfProtection}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          security: { ...settings.security, csrfProtection: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="CSRF保護"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  IPアクセス制御
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      IPホワイトリスト
+                    </Typography>
+                    <Box display="flex" gap={1} mb={2}>
+                      <TextField
+                        size="small"
+                        placeholder="IPアドレス"
+                        value={newIpWhitelist}
+                        onChange={(e) => setNewIpWhitelist(e.target.value)}
+                      />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Add />}
+                        onClick={addIpToWhitelist}
+                      >
+                        追加
+                      </Button>
+                    </Box>
+                    <List dense>
+                      {settings.security.ipWhitelist.map((ip) => (
+                        <ListItem key={ip}>
+                          <ListItemText primary={ip} />
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              onClick={() => removeFromWhitelist(ip)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="subtitle1" gutterBottom>
+                      IPブラックリスト
+                    </Typography>
+                    <Box display="flex" gap={1} mb={2}>
+                      <TextField
+                        size="small"
+                        placeholder="IPアドレス"
+                        value={newIpBlacklist}
+                        onChange={(e) => setNewIpBlacklist(e.target.value)}
+                      />
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Add />}
+                        onClick={addIpToBlacklist}
+                      >
+                        追加
+                      </Button>
+                    </Box>
+                    <List dense>
+                      {settings.security.ipBlacklist.map((ip) => (
+                        <ListItem key={ip}>
+                          <ListItemText primary={ip} />
+                          <ListItemSecondaryAction>
+                            <IconButton
+                              edge="end"
+                              size="small"
+                              onClick={() => removeFromBlacklist(ip)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </ListItemSecondaryAction>
+                        </ListItem>
+                      ))}
+                    </List>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Alert severity="info" icon={<Info />} sx={{ mb: 2 }}>
+                  メール設定はシステムからの通知メール送信に使用されます
+                </Alert>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="SMTPホスト"
+                  value={settings.email.smtpHost}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, smtpHost: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="SMTPポート"
+                  type="number"
+                  value={settings.email.smtpPort}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, smtpPort: parseInt(e.target.value) },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="SMTPユーザー名"
+                  value={settings.email.smtpUser}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, smtpUser: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="SMTPパスワード"
+                  type={showPassword ? 'text' : 'password'}
+                  value={settings.email.smtpPassword}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, smtpPassword: e.target.value },
+                    })
+                  }
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="送信元メールアドレス"
+                  type="email"
+                  value={settings.email.fromEmail}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, fromEmail: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="送信者名"
+                  value={settings.email.fromName}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      email: { ...settings.email, fromName: e.target.value },
+                    })
+                  }
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.email.smtpSecure}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          email: { ...settings.email, smtpSecure: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="セキュア接続（TLS/SSL）を使用"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  テストメール送信
+                </Typography>
+                <Box display="flex" gap={2}>
+                  <TextField
+                    fullWidth
+                    label="テスト送信先メールアドレス"
+                    type="email"
+                    value={settings.email.testEmailAddress}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        email: { ...settings.email, testEmailAddress: e.target.value },
+                      })
+                    }
+                  />
+                  <Button
+                    variant="outlined"
+                    startIcon={<Email />}
+                    disabled={!settings.email.testEmailAddress}
+                  >
+                    テスト送信
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={3}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="最大アップロードサイズ"
+                  type="number"
+                  value={settings.storage.maxUploadSize}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      storage: { ...settings.storage, maxUploadSize: parseInt(e.target.value) },
+                    })
+                  }
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">MB</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth>
+                  <InputLabel>ストレージ場所</InputLabel>
+                  <Select
+                    value={settings.storage.storageLocation}
+                    label="ストレージ場所"
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        storage: { ...settings.storage, storageLocation: e.target.value },
+                      })
+                    }
+                  >
+                    <MenuItem value="local">ローカルストレージ</MenuItem>
+                    <MenuItem value="s3">Amazon S3</MenuItem>
+                    <MenuItem value="gcs">Google Cloud Storage</MenuItem>
+                    <MenuItem value="azure">Azure Blob Storage</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle1" gutterBottom>
+                  許可するファイルタイプ
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {settings.storage.allowedFileTypes.map((type) => (
+                    <Chip key={type} label={`.${type}`} onDelete={() => {
+                      setSettings({
+                        ...settings,
+                        storage: {
+                          ...settings.storage,
+                          allowedFileTypes: settings.storage.allowedFileTypes.filter(t => t !== type),
+                        },
+                      });
+                    }} />
+                  ))}
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  CDN設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.storage.enableCdn}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          storage: { ...settings.storage, enableCdn: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="CDNを有効にする"
+                />
+              </Grid>
+              {settings.storage.enableCdn && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="CDN URL"
+                    value={settings.storage.cdnUrl}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        storage: { ...settings.storage, cdnUrl: e.target.value },
+                      })
+                    }
+                  />
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  バックアップ設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.storage.autoBackup}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          storage: { ...settings.storage, autoBackup: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="自動バックアップを有効にする"
+                />
+              </Grid>
+              {settings.storage.autoBackup && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="バックアップ間隔"
+                      type="number"
+                      value={settings.storage.backupInterval}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          storage: { ...settings.storage, backupInterval: parseInt(e.target.value) },
+                        })
+                      }
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">時間</InputAdornment>,
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="バックアップ保存期間"
+                      type="number"
+                      value={settings.storage.retentionDays}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          storage: { ...settings.storage, retentionDays: parseInt(e.target.value) },
+                        })
+                      }
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">日</InputAdornment>,
+                      }}
+                    />
+                  </Grid>
+                </>
+              )}
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={4}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  メール通知設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.emailNotifications}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, emailNotifications: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="メール通知を有効にする"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.adminAlerts}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, adminAlerts: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="管理者アラート"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.userRegistration}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, userRegistration: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="新規ユーザー登録通知"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.loginAlerts}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, loginAlerts: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="ログインアラート"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.securityAlerts}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, securityAlerts: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="セキュリティアラート"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.systemUpdates}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, systemUpdates: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="システム更新通知"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  パフォーマンスアラート
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.notifications.performanceAlerts}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, performanceAlerts: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="パフォーマンスアラートを有効にする"
+                />
+              </Grid>
+              {settings.notifications.performanceAlerts && (
+                <Grid item xs={12} md={6}>
+                  <Box>
+                    <Typography gutterBottom>
+                      アラート閾値: {settings.notifications.alertThreshold}%
+                    </Typography>
+                    <Slider
+                      value={settings.notifications.alertThreshold}
+                      onChange={(e, value) =>
+                        setSettings({
+                          ...settings,
+                          notifications: { ...settings.notifications, alertThreshold: value as number },
+                        })
+                      }
+                      min={50}
+                      max={100}
+                      step={5}
+                      marks
+                      valueLabelDisplay="auto"
+                    />
+                  </Box>
+                </Grid>
+              )}
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={5}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  API制限設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="レート制限"
+                  type="number"
+                  value={settings.api.rateLimit}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      api: { ...settings.api, rateLimit: parseInt(e.target.value) },
+                    })
+                  }
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">リクエスト/分</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="APIタイムアウト"
+                  type="number"
+                  value={settings.api.apiTimeout}
+                  onChange={(e) =>
+                    setSettings({
+                      ...settings,
+                      api: { ...settings.api, apiTimeout: parseInt(e.target.value) },
+                    })
+                  }
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">ms</InputAdornment>,
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  APIキー
+                </Typography>
+                <Box display="flex" gap={2} alignItems="center">
+                  <TextField
+                    fullWidth
+                    label="APIキー"
+                    type={showApiKey ? 'text' : 'password'}
+                    value={settings.api.apiKey}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        api: { ...settings.api, apiKey: e.target.value },
+                      })
+                    }
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowApiKey(!showApiKey)}
+                            edge="end"
+                          >
+                            {showApiKey ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button
+                    variant="outlined"
+                    startIcon={<Key />}
+                    onClick={handleGenerateApiKey}
+                  >
+                    生成
+                  </Button>
+                </Box>
+              </Grid>
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  CORS設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.api.enableCors}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          api: { ...settings.api, enableCors: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="CORSを有効にする"
+                />
+              </Grid>
+              {settings.api.enableCors && (
+                <Grid item xs={12}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="subtitle1" gutterBottom>
+                        許可するオリジン
+                      </Typography>
+                      <Box display="flex" gap={1} mb={2}>
+                        <TextField
+                          size="small"
+                          placeholder="https://example.com"
+                          value={newCorsOrigin}
+                          onChange={(e) => setNewCorsOrigin(e.target.value)}
+                        />
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<Add />}
+                          onClick={addCorsOrigin}
+                        >
+                          追加
+                        </Button>
+                      </Box>
+                      <List dense>
+                        {settings.api.corsOrigins.map((origin) => (
+                          <ListItem key={origin}>
+                            <ListItemText primary={origin} />
+                            <ListItemSecondaryAction>
+                              <IconButton
+                                edge="end"
+                                size="small"
+                                onClick={() => removeCorsOrigin(origin)}
+                              >
+                                <Delete />
+                              </IconButton>
+                            </ListItemSecondaryAction>
+                          </ListItem>
+                        ))}
+                      </List>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              )}
+              <Grid item xs={12}>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom>
+                  Webhook設定
+                </Typography>
+              </Grid>
+              <Grid item xs={12}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={settings.api.enableWebhooks}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          api: { ...settings.api, enableWebhooks: e.target.checked },
+                        })
+                      }
+                    />
+                  }
+                  label="Webhookを有効にする"
+                />
+              </Grid>
+              {settings.api.enableWebhooks && (
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Webhook URL"
+                    value={settings.api.webhookUrl}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        api: { ...settings.api, webhookUrl: e.target.value },
+                      })
+                    }
+                  />
+                </Grid>
+              )}
+            </Grid>
+          </TabPanel>
+        </Box>
+      </Paper>
+    </Container>
+  );
+}

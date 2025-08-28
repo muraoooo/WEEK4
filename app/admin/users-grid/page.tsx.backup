@@ -1,0 +1,292 @@
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
+import {
+  Box,
+  Container,
+  Typography,
+  Paper,
+  Button,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
+  Alert,
+  Stack,
+  InputAdornment,
+  CircularProgress,
+} from '@mui/material';
+import {
+  Search,
+  FilterList,
+  PersonAdd,
+} from '@mui/icons-material';
+import { useRouter } from 'next/navigation';
+
+// DataGridを動的インポート（SSRを無効化）
+const DataGrid = dynamic(
+  () => import('@mui/x-data-grid').then((mod) => mod.DataGrid),
+  {
+    ssr: false,
+    loading: () => <CircularProgress />,
+  }
+);
+
+interface User {
+  _id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'moderator' | 'user';
+  status: 'active' | 'suspended' | 'banned' | 'deleted';
+  createdAt: string;
+  updatedAt: string;
+  lastLogin: string | null;
+  emailVerified: boolean;
+  warningCount: number;
+}
+
+export default function UsersGridPage() {
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(50);
+  const [totalCount, setTotalCount] = useState(0);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: (page + 1).toString(),
+        limit: pageSize.toString(),
+        ...(search && { search }),
+        ...(roleFilter && { role: roleFilter }),
+        ...(statusFilter && { status: statusFilter }),
+      });
+
+      const response = await fetch(`/api/admin/users?${params}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+
+      const data = await response.json();
+      setUsers(data.users || []);
+      setTotalCount(data.pagination?.totalCount || 0);
+      setError(null);
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError('ユーザーデータの取得に失敗しました');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, search, roleFilter, statusFilter]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const columns = [
+    {
+      field: 'email',
+      headerName: 'メールアドレス',
+      width: 250,
+    },
+    {
+      field: 'name',
+      headerName: '名前',
+      width: 150,
+    },
+    {
+      field: 'role',
+      headerName: '権限',
+      width: 120,
+      renderCell: (params: any) => (
+        <Chip
+          label={params.value}
+          size="small"
+          color={
+            params.value === 'admin' ? 'error' :
+            params.value === 'moderator' ? 'warning' :
+            'default'
+          }
+        />
+      ),
+    },
+    {
+      field: 'status',
+      headerName: 'ステータス',
+      width: 130,
+      renderCell: (params: any) => {
+        const colors: any = {
+          active: 'success',
+          suspended: 'warning',
+          banned: 'error',
+          deleted: 'default',
+        };
+        return (
+          <Chip
+            label={params.value}
+            size="small"
+            color={colors[params.value] || 'default'}
+          />
+        );
+      },
+    },
+    {
+      field: 'emailVerified',
+      headerName: 'メール認証',
+      width: 100,
+      renderCell: (params: any) => params.value ? '✓' : '✗',
+    },
+    {
+      field: 'warningCount',
+      headerName: '警告',
+      width: 80,
+      renderCell: (params: any) => {
+        if (params.value === 0) return '-';
+        return (
+          <Chip
+            label={params.value}
+            size="small"
+            color={params.value >= 3 ? 'error' : 'warning'}
+          />
+        );
+      },
+    },
+    {
+      field: 'createdAt',
+      headerName: '登録日',
+      width: 180,
+      valueFormatter: (params: any) => {
+        return new Date(params.value).toLocaleString('ja-JP');
+      },
+    },
+    {
+      field: 'actions',
+      headerName: 'アクション',
+      width: 120,
+      renderCell: (params: any) => (
+        <Button
+          size="small"
+          onClick={() => router.push(`/admin/users/${params.row._id}`)}
+        >
+          詳細
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
+      {/* ヘッダー */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4">ユーザー管理（DataGrid版）</Typography>
+        <Button
+          variant="contained"
+          startIcon={<PersonAdd />}
+          onClick={() => router.push('/admin/users/new')}
+        >
+          新規ユーザー作成
+        </Button>
+      </Box>
+
+      {/* エラーメッセージ */}
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)} sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {/* フィルター */}
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          <TextField
+            label="検索"
+            variant="outlined"
+            size="small"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ minWidth: 250 }}
+          />
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>権限</InputLabel>
+            <Select
+              value={roleFilter}
+              label="権限"
+              onChange={(e) => setRoleFilter(e.target.value)}
+            >
+              <MenuItem value="">すべて</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+              <MenuItem value="moderator">Moderator</MenuItem>
+              <MenuItem value="user">User</MenuItem>
+            </Select>
+          </FormControl>
+          <FormControl size="small" sx={{ minWidth: 120 }}>
+            <InputLabel>ステータス</InputLabel>
+            <Select
+              value={statusFilter}
+              label="ステータス"
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <MenuItem value="">すべて</MenuItem>
+              <MenuItem value="active">アクティブ</MenuItem>
+              <MenuItem value="suspended">停止中</MenuItem>
+              <MenuItem value="banned">BAN</MenuItem>
+              <MenuItem value="deleted">削除済み</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="outlined"
+            startIcon={<FilterList />}
+            onClick={() => {
+              setSearch('');
+              setRoleFilter('');
+              setStatusFilter('');
+            }}
+          >
+            リセット
+          </Button>
+        </Stack>
+      </Paper>
+
+      {/* データグリッド */}
+      <Paper sx={{ height: 600 }}>
+        {typeof window !== 'undefined' && (
+          <DataGrid
+            rows={users}
+            columns={columns}
+            getRowId={(row) => row._id}
+            loading={loading}
+            paginationModel={{
+              page,
+              pageSize,
+            }}
+            onPaginationModelChange={(model) => {
+              setPage(model.page);
+              setPageSize(model.pageSize);
+            }}
+            pageSizeOptions={[25, 50, 100]}
+            rowCount={totalCount}
+            paginationMode="server"
+            checkboxSelection
+            disableRowSelectionOnClick
+          />
+        )}
+      </Paper>
+    </Container>
+  );
+}
