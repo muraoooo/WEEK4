@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAdminAuth } from '@/hooks/useAdminAuth';
 import {
   Container,
   Paper,
@@ -102,6 +103,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function AuditLogsPage() {
+  const { adminToken, loading: authLoading } = useAdminAuth();
   const [tabValue, setTabValue] = useState(0);
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState<AuditStats | null>(null);
@@ -136,10 +138,14 @@ export default function AuditLogsPage() {
   const [verificationResult, setVerificationResult] = useState<any>(null);
 
   useEffect(() => {
-    fetchLogs();
-  }, [page, rowsPerPage, filters]);
+    if (adminToken) {
+      fetchLogs();
+    }
+  }, [page, rowsPerPage, filters, adminToken]);
 
   const fetchLogs = async () => {
+    if (!adminToken) return;
+    
     setLoading(true);
     setError(null);
     
@@ -159,7 +165,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs?${params}`, {
         headers: {
-          'x-admin-secret': 'admin-development-secret-key'
+          'x-admin-secret': adminToken
         }
       });
       
@@ -202,7 +208,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs/verify?${params}`, {
         headers: {
-          'x-admin-secret': 'admin-development-secret-key'
+          'x-admin-secret': adminToken
         }
       });
       
@@ -230,7 +236,7 @@ export default function AuditLogsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': 'admin-development-secret-key'
+          'x-admin-secret': adminToken
         },
         body: JSON.stringify({ daysOld })
       });
@@ -259,7 +265,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs/export?${params}`, {
         headers: {
-          'x-admin-secret': 'admin-development-secret-key'
+          'x-admin-secret': adminToken
         }
       });
       
