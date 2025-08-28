@@ -164,7 +164,7 @@ export async function GET(
         email: assignee.email,
         name: assignee.name
       } : null,
-      relatedReports: relatedReports.map(r => ({
+      relatedReports: relatedReports.map((r: any) => ({
         _id: r._id.toString(),
         reason: r.reason,
         status: r.status,

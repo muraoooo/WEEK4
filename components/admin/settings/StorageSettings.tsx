@@ -48,13 +48,13 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           ファイルアップロード設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="最大ファイルサイズ"
@@ -69,7 +69,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <FormControl fullWidth>
           <InputLabel>ストレージタイプ</InputLabel>
           <Select
@@ -83,7 +83,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
         </FormControl>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           許可するファイルタイプ
         </Typography>
@@ -108,7 +108,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
         </Box>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -122,7 +122,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
       
       {settings.imageAutoResize && (
         <>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="最大幅"
@@ -136,7 +136,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
             />
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="最大高さ"
@@ -152,14 +152,14 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
         </>
       )}
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           CDN設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -173,7 +173,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
       
       {settings.cdnEnabled && (
         <>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <TextField
               fullWidth
               label="CDN URL"
@@ -184,7 +184,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
             />
           </Grid>
           
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <TextField
               fullWidth
               label="キャッシュ期間"
@@ -200,14 +200,14 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
         </>
       )}
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           バックアップ設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -221,7 +221,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
       
       {settings.autoBackup && (
         <>
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="バックアップ間隔"
@@ -236,7 +236,7 @@ export default function StorageSettings({ settings = {}, onChange }: StorageSett
             />
           </Grid>
           
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <TextField
               fullWidth
               label="バックアップ保持期間"

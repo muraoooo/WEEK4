@@ -83,19 +83,19 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Alert severity="info">
           メール設定はシステムからの通知メール送信に使用されます。正しく設定されていることを確認してください。
         </Alert>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           SMTP設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={8}>
+      <Grid size={{ xs: 12, md: 8 }}>
         <TextField
           fullWidth
           label="SMTPホスト"
@@ -106,7 +106,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
           label="SMTPポート"
@@ -120,7 +120,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="SMTPユーザー名"
@@ -130,7 +130,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="SMTPパスワード"
@@ -150,7 +150,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -162,14 +162,14 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           送信設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="送信者メールアドレス"
@@ -181,7 +181,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="送信者名"
@@ -192,7 +192,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="送信遅延"
@@ -207,7 +207,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="最大再試行回数"
@@ -222,7 +222,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           テストメール送信
@@ -232,7 +232,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
           <TextField
             fullWidth
@@ -256,7 +256,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
       </Grid>
       
       {testEmailResult && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Alert 
             severity={testEmailResult.success ? 'success' : 'error'}
             icon={testEmailResult.success ? <CheckCircle /> : undefined}

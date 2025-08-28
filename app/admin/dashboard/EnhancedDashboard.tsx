@@ -79,7 +79,8 @@ export default function EnhancedDashboard() {
       const response = await fetch('/api/admin/dashboard');
       
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        throw new (Error as any)(errorMessage);
       }
       
       const data = await response.json();
@@ -103,7 +104,7 @@ export default function EnhancedDashboard() {
       console.error('Failed to fetch dashboard data:', error);
       
       // Retry once if it's a network/404 error during hot reload
-      if (retryCount < 2 && (error instanceof TypeError || error?.message?.includes('404'))) {
+      if (retryCount < 2 && (error instanceof TypeError || (error as any)?.message?.includes('404'))) {
         console.log(`Retrying dashboard data fetch (attempt ${retryCount + 1})...`);
         setTimeout(() => fetchDashboardData(retryCount + 1), 1000);
         return;
@@ -190,7 +191,7 @@ export default function EnhancedDashboard() {
         </Typography>
         <Button
           startIcon={<Refresh />}
-          onClick={fetchDashboardData}
+          onClick={() => fetchDashboardData()}
           variant="outlined"
         >
           更新

@@ -3,7 +3,7 @@
  * メモリキャッシュ + 永続化 + 圧縮 + TTL
  */
 
-import LRU from 'lru-cache';
+import { LRUCache as LRU } from 'lru-cache';
 import { promisify } from 'util';
 import { gzip, gunzip } from 'zlib';
 

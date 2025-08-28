@@ -62,7 +62,7 @@ export async function GET(request: NextRequest) {
     ]).toArray();
 
     // 最近のセキュリティイベント
-    const recentEvents = [];
+    const recentEvents: any[] = [];
     
     // 失敗したログイン試行
     const recentFailedLogins = await loginAttemptsCollection

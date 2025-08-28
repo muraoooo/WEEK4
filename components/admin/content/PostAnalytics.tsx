@@ -116,7 +116,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
 
       {/* Performance Overview */}
       <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -137,7 +137,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -159,7 +159,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -181,7 +181,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Card>
             <CardContent>
               <Box display="flex" alignItems="center" gap={2} mb={2}>
@@ -208,7 +208,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
 
       <Grid container spacing={3}>
         {/* Views Trend */}
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -243,7 +243,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
         </Grid>
 
         {/* Category Distribution */}
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -277,7 +277,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
         </Grid>
 
         {/* Engagement Metrics */}
-        <Grid item xs={12} lg={8}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -308,7 +308,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
         </Grid>
 
         {/* Performance Insights */}
-        <Grid item xs={12} lg={4}>
+        <Grid size={{ xs: 12, lg: 4 }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -385,7 +385,7 @@ const PostAnalytics: React.FC<PostAnalyticsProps> = ({ postId, data }) => {
         </Grid>
 
         {/* Moderation Timeline */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>

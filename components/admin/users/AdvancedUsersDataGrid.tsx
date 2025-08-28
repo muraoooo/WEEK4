@@ -16,6 +16,7 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridRowSelectionModel,
+  GridSortModel,
   GridToolbar,
   GridActionsCellItem,
 } from '@mui/x-data-grid';
@@ -61,7 +62,7 @@ interface AdvancedUsersDataGridProps {
   filterModel: any;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  onSortChange: (model: any[]) => void;
+  onSortChange: (model: GridSortModel) => void;
   onFilterChange: (model: any) => void;
   onRowClick: (userId: string) => void;
   onSelectionChange: (selection: GridRowSelectionModel) => void;
@@ -277,7 +278,7 @@ export default function AdvancedUsersDataGrid({
         );
       },
       type: 'dateTime',
-      valueGetter: (params) => params.value ? new Date(params.value) : null,
+      valueGetter: (params: any) => params.value ? new Date(params.value) : null,
     },
     {
       field: 'createdAt',
@@ -291,7 +292,7 @@ export default function AdvancedUsersDataGrid({
         </Tooltip>
       ),
       type: 'dateTime',
-      valueGetter: (params) => new Date(params.value),
+      valueGetter: (params: any) => new Date(params.value),
     },
     {
       field: 'actions',
@@ -398,7 +399,6 @@ export default function AdvancedUsersDataGrid({
         
         // Performance
         rowHeight={72}
-        headerHeight={56}
         
         // Localization
         localeText={{
@@ -427,14 +427,6 @@ export default function AdvancedUsersDataGrid({
           // Root
           noRowsLabel: 'データがありません',
           noResultsOverlayLabel: '結果が見つかりません',
-          errorOverlayDefaultLabel: 'エラーが発生しました',
-          
-          // Pagination
-          MuiTablePagination: {
-            labelRowsPerPage: '表示件数',
-            labelDisplayedRows: ({ from, to, count }) =>
-              `${from}–${to} / ${count !== -1 ? count : `${to}以上`}`,
-          },
           
           // Selection
           checkboxSelectionHeaderName: 'チェックボックス',

@@ -262,7 +262,7 @@ class APIOptimizer {
       const compressed = await gzipAsync(jsonString);
       const compressionRatio = (1 - compressed.length / originalSize) * 100;
 
-      return new NextResponse(compressed, {
+      return new NextResponse(compressed as any, {
         headers: {
           'Content-Type': 'application/json',
           'Content-Encoding': 'gzip',
@@ -350,7 +350,7 @@ class APIOptimizer {
       await cacheAdvanced.set(cacheKey, count, 600000); // 10分
     }
     
-    return count;
+    return count as number;
   }
 
   /**
@@ -391,7 +391,7 @@ class APIOptimizer {
         recommendations.push({
           fields: { [field]: 1 },
           reason: `Field '${field}' is used in ${usage} out of ${recentQueries.length} queries`,
-          impact: usage >= recentQueries.length * 0.7 ? 'high' : 'medium'
+          impact: (usage >= recentQueries.length * 0.7 ? 'high' : 'medium') as 'high' | 'medium'
         });
       }
     }
@@ -418,7 +418,7 @@ class APIOptimizer {
         recommendations.push({
           fields: commonPattern,
           reason: 'Composite index for frequent filter+sort pattern',
-          impact: 'high'
+          impact: 'high' as 'high'
         });
       }
     }

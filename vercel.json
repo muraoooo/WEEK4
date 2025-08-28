@@ -1,33 +1,10 @@
 {
-  "buildCommand": "npm run build",
   "framework": "nextjs",
   "regions": ["hnd1"],
   "functions": {
     "app/api/**/*.{js,ts}": {
-      "maxDuration": 30,
-      "memory": 1024
+      "maxDuration": 30
     }
-  },
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "JWT_SECRET": "@jwt_secret",
-    "JWT_ACCESS_SECRET": "@jwt_access_secret", 
-    "JWT_REFRESH_SECRET": "@jwt_refresh_secret",
-    "NODE_ENV": "production",
-    "NEXTAUTH_URL": "@nextauth_url",
-    "NEXTAUTH_SECRET": "@nextauth_secret",
-    "EMAIL_SERVER_HOST": "@email_server_host",
-    "EMAIL_SERVER_PORT": "@email_server_port",
-    "EMAIL_SERVER_USER": "@email_server_user",
-    "EMAIL_SERVER_PASSWORD": "@email_server_password",
-    "EMAIL_FROM": "@email_from",
-    "SMTP_HOST": "@smtp_host",
-    "SMTP_PORT": "@smtp_port",
-    "SMTP_USER": "@smtp_user",
-    "SMTP_PASS": "@smtp_pass",
-    "ADMIN_SECRET_KEY": "@admin_secret_key",
-    "AUDIT_LOG_SECRET": "@audit_log_secret",
-    "NEXT_PUBLIC_ADMIN_SECRET": "@next_public_admin_secret"
   },
   "headers": [
     {

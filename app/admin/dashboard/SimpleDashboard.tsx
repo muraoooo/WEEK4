@@ -165,7 +165,7 @@ export default function SimpleDashboard() {
       {/* 統計カード */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {statsCards.map((card, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
             <Card
               sx={{
                 cursor: 'pointer',
@@ -196,7 +196,7 @@ export default function SimpleDashboard() {
 
       <Grid container spacing={3}>
         {/* 最近のアクティビティ */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">最近のアクティビティ</Typography>
@@ -223,7 +223,7 @@ export default function SimpleDashboard() {
         </Grid>
 
         {/* システムステータス */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               システムステータス
@@ -269,7 +269,7 @@ export default function SimpleDashboard() {
         </Grid>
 
         {/* クイックアクション */}
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ mb: 2 }}>
               クイックアクション

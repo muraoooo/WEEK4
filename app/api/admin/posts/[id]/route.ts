@@ -117,7 +117,7 @@ export async function GET(
     });
 
     // 通報情報を取得
-    let reports = [];
+    let reports: any[] = [];
     if (post.reported) {
       reports = await reportsCollection
         .find({ 

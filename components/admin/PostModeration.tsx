@@ -82,7 +82,7 @@ export default function PostModeration({ open, onClose, post, onAction }: PostMo
       });
 
       if (!response.ok) {
-        throw new Error('Failed to perform moderation');
+        throw new (Error as any)('Failed to perform moderation');
       }
 
       const result = await response.json();
@@ -104,7 +104,7 @@ export default function PostModeration({ open, onClose, post, onAction }: PostMo
       });
 
       if (!response.ok) {
-        throw new Error('Failed to perform action');
+        throw new (Error as any)('Failed to perform action');
       }
 
       onAction();
@@ -122,8 +122,8 @@ export default function PostModeration({ open, onClose, post, onAction }: PostMo
     return { label: '低リスク', color: 'success' as const };
   };
 
-  const getCategoryIcon = (category: string) => {
-    const icons: { [key: string]: React.ReactNode } = {
+  const getCategoryIcon = (category: string): React.ReactElement => {
+    const icons: { [key: string]: React.ReactElement } = {
       violence: <Warning color="error" />,
       harassment: <PersonOff color="warning" />,
       hate: <Block color="error" />,
@@ -134,8 +134,8 @@ export default function PostModeration({ open, onClose, post, onAction }: PostMo
     return icons[category] || <Info />;
   };
 
-  const getFlagIcon = (flag: string) => {
-    const icons: { [key: string]: React.ReactNode } = {
+  const getFlagIcon = (flag: string): React.ReactElement => {
+    const icons: { [key: string]: React.ReactElement } = {
       'offensive_language': <Language color="warning" />,
       'potential_harassment': <PersonOff color="warning" />,
       'spam_content': <Report color="warning" />,

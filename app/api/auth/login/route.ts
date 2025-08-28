@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date(),
       lastActivity: new Date(),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7日後
-      ipAddress: request.headers.get('x-forwarded-for') || request.ip || 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown',
       isActive: true,
       deviceType: 'web',
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         loginMethod: 'password',
         success: true
       },
-      ipAddress: request.headers.get('x-forwarded-for') || request.ip || 'unknown',
+      ipAddress: request.headers.get('x-forwarded-for') || 'unknown',
       userAgent: request.headers.get('user-agent') || 'unknown'
     });
 
@@ -187,5 +187,5 @@ function getClientIP(request: NextRequest): string {
     return xRealIP.trim();
   }
 
-  return request.ip || '127.0.0.1';
+  return '127.0.0.1';
 }

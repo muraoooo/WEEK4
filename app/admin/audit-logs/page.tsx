@@ -523,7 +523,7 @@ export default function AuditLogsPage() {
                         重要度分布
                       </Typography>
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        {(stats.severityDistribution || []).map((item) => (
+                        {(stats.severityDistribution || []).map((item: any) => (
                           <Chip
                             key={item.severity || item._id}
                             label={`${item.severity || item._id}: ${item.count}`}

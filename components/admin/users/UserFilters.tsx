@@ -243,7 +243,7 @@ export default function UserFilters({
                       value={filters.emailVerified === null ? '' : filters.emailVerified ? 'true' : 'false'}
                       label="メール認証"
                       onChange={(e) => handleFilterChange('emailVerified', 
-                        e.target.value === '' ? null : e.target.value === 'true'
+                        (e.target.value as string) === '' ? null : e.target.value === 'true'
                       )}
                     >
                       <MenuItem value="">すべて</MenuItem>
@@ -258,7 +258,7 @@ export default function UserFilters({
                       value={filters.twoFactorEnabled === null ? '' : filters.twoFactorEnabled ? 'true' : 'false'}
                       label="2FA設定"
                       onChange={(e) => handleFilterChange('twoFactorEnabled', 
-                        e.target.value === '' ? null : e.target.value === 'true'
+                        (e.target.value as string) === '' ? null : e.target.value === 'true'
                       )}
                     >
                       <MenuItem value="">すべて</MenuItem>

@@ -38,8 +38,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
     try {
       const response = await fetch('/api/admin/settings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json',
-        , 'x-admin-secret': 'admin-development-secret-key' },
+        headers: { 'Content-Type': 'application/json', 'x-admin-secret': 'admin-development-secret-key' },
         body: JSON.stringify({
           action: 'test-email',
           data: { testEmail }
@@ -72,19 +71,19 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Alert severity="info">
           メール送信に必要な最小限の設定です。環境変数での設定を推奨します。
         </Alert>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           SMTP設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="SMTPホスト"
@@ -95,7 +94,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="SMTPポート"
@@ -106,7 +105,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="送信元メールアドレス"
@@ -118,7 +117,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="送信者名"
@@ -129,13 +128,13 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
           テスト送信
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
           <TextField
             fullWidth
@@ -159,7 +158,7 @@ export default function EmailSettings({ settings = {}, onChange }: EmailSettings
       </Grid>
       
       {testEmailResult && (
-        <Grid item xs={12}>
+        <Grid size={12}>
           <Alert 
             severity={testEmailResult.success ? 'success' : 'error'}
             icon={testEmailResult.success ? <CheckCircle /> : undefined}

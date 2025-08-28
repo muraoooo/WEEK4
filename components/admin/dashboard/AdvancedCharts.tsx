@@ -219,7 +219,6 @@ const AdvancedCharts: React.FC<AdvancedChartsProps> = ({ data }) => {
       <Treemap
         data={data.geographicData}
         dataKey="users"
-        ratio={4/3}
         stroke={theme.palette.background.paper}
         fill={theme.palette.primary.main}
         content={({ root, depth, x, y, width, height, index, payload, colors, name }: any) => {
@@ -446,14 +445,14 @@ const AdvancedCharts: React.FC<AdvancedChartsProps> = ({ data }) => {
         <Grid container spacing={2}>
           {selectedChart === 'growth' && (
             <>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Chip 
                   label={`平均新規ユーザー: ${Math.round(data.userGrowth.reduce((acc, item) => acc + item.newUsers, 0) / data.userGrowth.length)}`}
                   color="primary" 
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Chip 
                   label={`継続率: ${(data.userGrowth.reduce((acc, item) => acc + item.retentionRate, 0) / data.userGrowth.length).toFixed(1)}%`}
                   color="success" 
@@ -464,14 +463,14 @@ const AdvancedCharts: React.FC<AdvancedChartsProps> = ({ data }) => {
           )}
           {selectedChart === 'content' && (
             <>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Chip 
                   label={`最も活発: ${data.contentMetrics.reduce((prev, current) => (prev.posts > current.posts) ? prev : current).category}`}
                   color="primary" 
                   variant="outlined"
                 />
               </Grid>
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid size={{ xs: 12, sm: 6, md: 3 }}>
                 <Chip 
                   label={`要注意: ${data.contentMetrics.reduce((prev, current) => (prev.reports > current.reports) ? prev : current).category}`}
                   color="warning" 
@@ -481,7 +480,7 @@ const AdvancedCharts: React.FC<AdvancedChartsProps> = ({ data }) => {
             </>
           )}
           {selectedChart === 'geographic' && (
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Chip 
                 label={`最大市場: ${data.geographicData.reduce((prev, current) => (prev.users > current.users) ? prev : current).country}`}
                 color="info" 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Container,
@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import { LockOutlined } from '@mui/icons-material';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get('from') || '/admin/dashboard';
@@ -158,5 +158,13 @@ export default function LoginPage() {
         </Typography>
       </Box>
     </Container>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<CircularProgress />}>
+      <LoginForm />
+    </Suspense>
   );
 }

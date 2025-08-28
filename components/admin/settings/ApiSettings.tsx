@@ -108,13 +108,13 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           レート制限
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="リクエスト数/分"
@@ -129,7 +129,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="リクエスト数/時"
@@ -144,7 +144,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           レート制限除外IPアドレス
         </Typography>
@@ -173,14 +173,14 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         </Box>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           APIキー管理
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Card>
           <CardContent>
             {settings.apiKey ? (
@@ -230,14 +230,14 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         </Card>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           CORS設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -251,7 +251,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
       
       {settings.corsEnabled && (
         <>
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="subtitle2" gutterBottom>
               許可するオリジン
             </Typography>
@@ -279,7 +279,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
             </Box>
           </Grid>
           
-          <Grid item xs={12}>
+          <Grid size={12}>
             <Typography variant="subtitle2" gutterBottom>
               許可するメソッド
             </Typography>
@@ -303,14 +303,14 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         </>
       )}
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           Webhook設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <TextField
           fullWidth
           label="Webhook URL"
@@ -321,7 +321,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <TextField
           fullWidth
           label="Webhook シークレット"
@@ -331,7 +331,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           通知するイベント
         </Typography>
@@ -353,7 +353,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         </Box>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Webhook再試行回数"
@@ -368,7 +368,7 @@ export default function ApiSettings({ settings = {}, onChange }: ApiSettingsProp
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="Webhookタイムアウト"

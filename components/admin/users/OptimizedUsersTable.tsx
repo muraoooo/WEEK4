@@ -24,7 +24,6 @@ import Edit from '@mui/icons-material/Edit';
 import Block from '@mui/icons-material/Block';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import Warning from '@mui/icons-material/Warning';
-import { FixedSizeList as List } from 'react-window';
 
 // 重いコンポーネントを遅延読み込み
 const UserDetailsDialog = lazy(() => import('./UserDetailsDialog'));

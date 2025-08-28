@@ -478,7 +478,7 @@ class SecurityMiddleware {
       return xRealIP.trim();
     }
 
-    return request.ip || '127.0.0.1';
+    return '127.0.0.1';
   }
 
   /**

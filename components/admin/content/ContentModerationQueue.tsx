@@ -288,7 +288,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>ステータス</InputLabel>
                 <Select
@@ -306,7 +306,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>優先度</InputLabel>
                 <Select
@@ -323,7 +323,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>タイプ</InputLabel>
                 <Select
@@ -339,7 +339,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
+            <Grid size={{ xs: 12, sm: 6, md: 2 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>リスクレベル</InputLabel>
                 <Select
@@ -356,7 +356,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <Stack direction="row" spacing={1}>
                 {selectedItems.length > 0 && (
                   <>
@@ -609,7 +609,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
             
             <DialogContent>
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -620,12 +620,12 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
                       </Typography>
                       <Divider sx={{ my: 2 }} />
                       <Grid container spacing={2}>
-                        <Grid item xs={6}>
+                        <Grid size={6}>
                           <Typography variant="caption" color="text.secondary">
                             投稿者: {selectedItem.content.author.name}
                           </Typography>
                         </Grid>
-                        <Grid item xs={6}>
+                        <Grid size={6}>
                           <Typography variant="caption" color="text.secondary">
                             作成: {formatDate(selectedItem.content.metadata.createdAt)}
                           </Typography>
@@ -635,7 +635,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -694,7 +694,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
                   </Card>
                 </Grid>
 
-                <Grid item xs={12} md={6}>
+                <Grid size={{ xs: 12, md: 6 }}>
                   <Card variant="outlined">
                     <CardContent>
                       <Typography variant="subtitle2" gutterBottom>
@@ -731,7 +731,7 @@ const ContentModerationQueue: React.FC<ContentModerationQueueProps> = ({
                 </Grid>
 
                 {selectedItem.reports && selectedItem.reports.length > 0 && (
-                  <Grid item xs={12}>
+                  <Grid size={12}>
                     <Card variant="outlined">
                       <CardContent>
                         <Typography variant="subtitle2" gutterBottom>

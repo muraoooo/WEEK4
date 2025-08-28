@@ -225,11 +225,11 @@ export async function POST(request: NextRequest) {
         break;
 
       default:
-        const responseTime = Date.now() - startTime;
+        const errorResponseTime = Date.now() - startTime;
         await performanceMonitor.recordMetric(
           '/api/admin/performance',
           'POST',
-          responseTime,
+          errorResponseTime,
           400,
           {
             ip: getClientIP(request),
@@ -324,5 +324,5 @@ function getClientIP(request: NextRequest): string {
     return xRealIP.trim();
   }
 
-  return request.ip || '127.0.0.1';
+  return '127.0.0.1';
 }

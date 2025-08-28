@@ -22,6 +22,7 @@ import {
   GridColDef,
   GridRenderCellParams,
   GridRowSelectionModel,
+  GridSortModel,
   GridToolbar,
   GridActionsCellItem,
 } from '@mui/x-data-grid';
@@ -71,7 +72,7 @@ interface SessionDataGridProps {
   sortModel: any[];
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
-  onSortChange: (model: any[]) => void;
+  onSortChange: (model: GridSortModel) => void;
   onSelectionChange: (selection: GridRowSelectionModel) => void;
   selectionModel: GridRowSelectionModel;
   onTerminateSession: (sessionId: string) => void;
@@ -271,7 +272,7 @@ export default function SessionDataGrid({
         </Tooltip>
       ),
       type: 'dateTime',
-      valueGetter: (params) => new Date(params.value),
+      valueGetter: (params: any) => new Date(params.value),
     },
     {
       field: 'lastActivity',
@@ -288,7 +289,7 @@ export default function SessionDataGrid({
         </Stack>
       ),
       type: 'dateTime',
-      valueGetter: (params) => new Date(params.value),
+      valueGetter: (params: any) => new Date(params.value),
     },
     {
       field: 'status',
@@ -442,7 +443,6 @@ export default function SessionDataGrid({
         
         // Performance
         rowHeight={72}
-        headerHeight={56}
         
         // Localization
         localeText={{

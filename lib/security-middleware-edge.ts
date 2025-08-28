@@ -25,7 +25,6 @@ class EdgeSecurityMiddleware {
   private getClientIP(request: NextRequest): string {
     return request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
            request.headers.get('x-real-ip') ||
-           request.ip ||
            '127.0.0.1';
   }
 

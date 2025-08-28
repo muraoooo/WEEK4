@@ -171,7 +171,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
       case 'running': return 'info';
       case 'failed': return 'error';
       case 'cancelled': return 'warning';
-      default: return 'default';
+      default: return 'primary';
     }
   };
 
@@ -295,7 +295,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
       {selectedItems.length > 0 && (
         <Grid container spacing={3} mb={4}>
           {/* Moderation Actions */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -328,7 +328,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
           </Grid>
 
           {/* Content Actions */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -361,7 +361,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
           </Grid>
 
           {/* System Actions */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -394,7 +394,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
           </Grid>
 
           {/* User Actions */}
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Card>
               <CardContent>
                 <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 600 }}>
@@ -476,17 +476,17 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
                 </Box>
 
                 <Grid container spacing={2}>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="caption" color="text.secondary">
                       成功: {job.successCount}
                     </Typography>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="caption" color="text.secondary">
                       エラー: {job.errorCount}
                     </Typography>
                   </Grid>
-                  <Grid item xs={4}>
+                  <Grid size={4}>
                     <Typography variant="caption" color="text.secondary">
                       所要時間: {job.startedAt ? formatDuration(job.startedAt, job.completedAt) : '-'}
                     </Typography>
@@ -551,7 +551,7 @@ const BulkContentActions: React.FC<BulkContentActionsProps> = ({
                     {selectedAction.parameters && selectedAction.parameters.length > 0 ? (
                       <Grid container spacing={2}>
                         {selectedAction.parameters.map((param) => (
-                          <Grid item xs={12} key={param.name}>
+                          <Grid size={12} key={param.name}>
                             {renderParameterInput(param)}
                           </Grid>
                         ))}

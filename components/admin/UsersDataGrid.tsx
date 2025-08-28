@@ -117,7 +117,7 @@ export default function UsersDataGrid({
       field: 'lastLogin',
       headerName: '最終ログイン',
       width: 180,
-      valueFormatter: (params) => {
+      valueFormatter: (params: any) => {
         if (!params.value) return '未ログイン';
         return new Date(params.value).toLocaleString('ja-JP');
       },
@@ -126,7 +126,7 @@ export default function UsersDataGrid({
       field: 'createdAt',
       headerName: '登録日',
       width: 180,
-      valueFormatter: (params) => {
+      valueFormatter: (params: any) => {
         return new Date(params.value).toLocaleString('ja-JP');
       },
     },

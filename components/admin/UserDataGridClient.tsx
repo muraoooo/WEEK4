@@ -180,7 +180,7 @@ export default function UserDataGridClient({
         <DataGrid
           rows={users}
           columns={columns}
-          getRowId={(row) => row._id}
+          getRowId={(row: any) => row._id}
           loading={loading}
           initialState={{
             pagination: {
@@ -194,7 +194,7 @@ export default function UserDataGridClient({
             page: page,
             pageSize: pageSize,
           }}
-          onPaginationModelChange={(model) => {
+          onPaginationModelChange={(model: any) => {
             onPageChange(model.page);
             onPageSizeChange(model.pageSize);
           }}

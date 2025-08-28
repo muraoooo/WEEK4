@@ -151,7 +151,7 @@ class PerformanceMonitor {
     const cacheHitRate = cacheHits / recentMetrics.length;
 
     const latestMemory = recentMetrics[recentMetrics.length - 1].memoryUsage;
-    const memoryUsagePercent = latestMemory.used / latestMemory.rss;
+    const memoryUsagePercent = latestMemory.heapUsed / latestMemory.heapTotal;
 
     const dbResponseTimes = recentMetrics
       .filter(m => m.dbResponseTime !== undefined)
@@ -292,10 +292,10 @@ class PerformanceMonitor {
         message: `Server error ${metric.statusCode} on ${metric.endpoint}`
       },
       {
-        condition: (metric.memoryUsage.used / metric.memoryUsage.rss) > this.thresholds.memoryUsage.critical,
+        condition: (metric.memoryUsage.heapUsed / metric.memoryUsage.heapTotal) > this.thresholds.memoryUsage.critical,
         type: 'resource' as const,
         severity: 'critical' as const,
-        message: `Critical memory usage: ${Math.round((metric.memoryUsage.used / metric.memoryUsage.rss) * 100)}%`
+        message: `Critical memory usage: ${Math.round((metric.memoryUsage.heapUsed / metric.memoryUsage.heapTotal) * 100)}%`
       }
     ];
 

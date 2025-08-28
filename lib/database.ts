@@ -32,22 +32,24 @@ function getMongoDBUri() {
 
 const MONGODB_URI = getMongoDBUri();
 
+interface CachedMongoose {
+  conn: any;
+  promise: any;
+}
+
 /**
  * Global is used here to maintain a cached connection across hot reloads
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
 declare global {
-  var mongoose: {
-    conn: any;
-    promise: any;
-  };
+  var mongoose: CachedMongoose | undefined;
 }
 
-let cached = global.mongoose;
+let cached: CachedMongoose = global.mongoose || { conn: null, promise: null };
 
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+if (!global.mongoose) {
+  global.mongoose = cached;
 }
 
 export async function connectDatabase() {
@@ -64,8 +66,8 @@ export async function connectDatabase() {
       socketTimeoutMS: 30000, // ソケットタイムアウトを短縮
       connectTimeoutMS: 10000, // 接続タイムアウトを追加
       family: 4, // Force IPv4
-      compressors: ['zlib'], // データ圧縮を有効化
-      readPreference: 'primaryPreferred', // 読み取りパフォーマンス向上
+      compressors: ['zlib' as const], // データ圧縮を有効化
+      readPreference: 'primaryPreferred' as const, // 読み取りパフォーマンス向上
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {

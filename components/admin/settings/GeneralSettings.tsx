@@ -47,13 +47,13 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
 
   return (
     <Grid container spacing={3}>
-      <Grid xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Typography variant="h6" gutterBottom>
           サイト情報
         </Typography>
       </Grid>
       
-      <Grid xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="サイト名"
@@ -63,7 +63,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="管理者メールアドレス"
@@ -74,7 +74,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
         />
       </Grid>
       
-      <Grid xs={12}>
+      <Grid size={{ xs: 12 }}>
         <TextField
           fullWidth
           label="サイト説明"
@@ -86,7 +86,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
         />
       </Grid>
       
-      <Grid xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <FormControl fullWidth>
           <InputLabel>タイムゾーン</InputLabel>
           <Select
@@ -104,7 +104,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
         </FormControl>
       </Grid>
       
-      <Grid xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <FormControl fullWidth>
           <InputLabel>デフォルト言語</InputLabel>
           <Select
@@ -120,14 +120,14 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
         </FormControl>
       </Grid>
       
-      <Grid xs={12}>
+      <Grid size={{ xs: 12 }}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           メンテナンスモード
         </Typography>
       </Grid>
       
-      <Grid xs={12}>
+      <Grid size={{ xs: 12 }}>
         <FormControlLabel
           control={
             <Switch
@@ -146,7 +146,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
       
       {settings.maintenanceMode && (
         <>
-          <Grid xs={12}>
+          <Grid size={{ xs: 12 }}>
             <TextField
               fullWidth
               label="メンテナンスメッセージ"
@@ -158,7 +158,7 @@ export default function GeneralSettings({ settings = {}, onChange }: GeneralSett
             />
           </Grid>
           
-          <Grid xs={12}>
+          <Grid size={{ xs: 12 }}>
             <Typography variant="subtitle2" gutterBottom>
               除外IPアドレス（メンテナンス中でもアクセス可能）
             </Typography>

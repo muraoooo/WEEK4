@@ -164,10 +164,10 @@ export async function GET(request: NextRequest) {
       reports: paginatedResult.data,
       pagination: paginatedResult.pagination,
       stats: {
-        byStatus: byStatusResult.data,
-        byPriority: byPriorityResult.data,
-        byCategory: byCategoryResult.data,
-        recentTrends: trendsResult.data
+        byStatus: byStatusResult.data as { _id: string; count: number }[],
+        byPriority: byPriorityResult.data as { _id: string; count: number }[],
+        byCategory: byCategoryResult.data as { _id: string; count: number }[],
+        recentTrends: trendsResult.data as any[]
       },
       performance: {
         executionTime: Date.now() - startTime,

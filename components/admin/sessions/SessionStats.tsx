@@ -97,7 +97,7 @@ export default function SessionStatsPanel({ stats, loading = false }: SessionSta
       
       <Grid container spacing={2}>
         {/* Overall Stats */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Box>
             <Typography variant="subtitle2" gutterBottom>
               全体統計
@@ -156,7 +156,7 @@ export default function SessionStatsPanel({ stats, loading = false }: SessionSta
         </Grid>
 
         {/* Device Stats */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Box>
             <Typography variant="subtitle2" gutterBottom>
               デバイス別
@@ -228,7 +228,7 @@ export default function SessionStatsPanel({ stats, loading = false }: SessionSta
         </Grid>
 
         {/* Recent Activity */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Box>
             <Typography variant="subtitle2" gutterBottom display="flex" alignItems="center" gap={1}>
               <TrendingUp fontSize="small" />
@@ -252,7 +252,7 @@ export default function SessionStatsPanel({ stats, loading = false }: SessionSta
         </Grid>
 
         {/* Top Locations */}
-        <Grid item xs={12} md={6}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Box>
             <Typography variant="subtitle2" gutterBottom display="flex" alignItems="center" gap={1}>
               <LocationOn fontSize="small" />

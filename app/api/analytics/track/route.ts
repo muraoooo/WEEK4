@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   try {
     await connectDatabase();
     
-    const headersList = headers();
+    const headersList = await headers();
     const body = await request.json().catch(() => ({}));
     
     // IPアドレスの取得と匿名化
@@ -188,10 +188,10 @@ export async function GET(request: NextRequest) {
     
     // 各種統計の取得
     const [hourlyStats, deviceStats, topPages, referrerStats] = await Promise.all([
-      AccessLog.getHourlyStats(startDate, now),
-      AccessLog.getDeviceStats(startDate, now),
-      AccessLog.getTopPages(10, startDate, now),
-      AccessLog.getReferrerStats(startDate, now),
+      (AccessLog as any).getHourlyStats?.(startDate, now) || [],
+      (AccessLog as any).getDeviceStats?.(startDate, now) || [],
+      (AccessLog as any).getTopPages?.(10, startDate, now) || [],
+      (AccessLog as any).getReferrerStats?.(startDate, now) || [],
     ]);
     
     // 全体統計の計算

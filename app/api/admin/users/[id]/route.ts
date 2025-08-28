@@ -20,13 +20,13 @@ export async function GET(
     let user = null;
     
     // まず文字列IDで検索
-    user = await usersCollection.findOne({ _id: userId });
+    user = await usersCollection.findOne({ _id: userId } as any);
     
     // 見つからない場合、ObjectIdとして検索（24文字の16進数の場合のみ）
     if (!user && /^[0-9a-fA-F]{24}$/.test(userId)) {
       user = await usersCollection.findOne({
         _id: new mongoose.Types.ObjectId(userId)
-      });
+      } as any);
     }
     
     if (!user) {
@@ -150,7 +150,7 @@ export async function PUT(
     
     // それでも見つからない場合、文字列IDで検索
     if (!currentUser) {
-      currentUser = await usersCollection.findOne({ _id: userId });
+      currentUser = await usersCollection.findOne({ _id: userId } as any);
       console.log('Found user with string ID:', currentUser ? 'Yes' : 'No');
     }
     
@@ -344,11 +344,11 @@ export async function DELETE(
     const auditLogsCollection = mongoose.connection.collection('audit_logs');
     
     // ユーザー情報を取得
-    let user = await usersCollection.findOne({ _id: userId });
+    let user = await usersCollection.findOne({ _id: userId } as any);
     if (!user && /^[0-9a-fA-F]{24}$/.test(userId)) {
       user = await usersCollection.findOne({
         _id: new mongoose.Types.ObjectId(userId)
-      });
+      } as any);
     }
     
     if (!user) {

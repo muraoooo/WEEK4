@@ -48,13 +48,13 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           メール通知設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -69,7 +69,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -84,7 +84,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormControlLabel
           control={
             <Switch
@@ -99,14 +99,14 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           ログアラート設定
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <FormControl fullWidth>
           <InputLabel>エラーレベル設定</InputLabel>
           <Select
@@ -121,7 +121,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </FormControl>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="アラート頻度"
@@ -136,7 +136,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           通知先メールアドレス
@@ -146,7 +146,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           <TextField
             size="small"
@@ -181,14 +181,14 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         </Box>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           パフォーマンスアラート
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           CPU使用率アラート閾値: {settings.cpuAlertThreshold || 80}%
         </Typography>
@@ -207,7 +207,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           メモリ使用率アラート閾値: {settings.memoryAlertThreshold || 80}%
         </Typography>
@@ -226,7 +226,7 @@ export default function NotificationSettings({ settings = {}, onChange }: Notifi
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           ディスク使用率アラート閾値: {settings.diskAlertThreshold || 90}%
         </Typography>

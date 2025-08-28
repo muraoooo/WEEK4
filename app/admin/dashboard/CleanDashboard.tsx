@@ -226,7 +226,7 @@ export default function CleanDashboard() {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   {getChangeIcon(stats?.users.change || 0)}
-                  <Typography variant="caption" sx={{ color: stats?.users.change >= 0 ? '#4caf50' : '#f44336' }}>
+                  <Typography variant="caption" sx={{ color: (stats?.users.change ?? 0) >= 0 ? '#4caf50' : '#f44336' }}>
                     {Math.abs(stats?.users.changePercent || 0).toFixed(1)}%
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#999', ml: 0.5 }}>
@@ -250,7 +250,7 @@ export default function CleanDashboard() {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   {getChangeIcon(stats?.posts.change || 0)}
-                  <Typography variant="caption" sx={{ color: stats?.posts.change >= 0 ? '#4caf50' : '#f44336' }}>
+                  <Typography variant="caption" sx={{ color: (stats?.posts.change ?? 0) >= 0 ? '#4caf50' : '#f44336' }}>
                     {Math.abs(stats?.posts.changePercent || 0).toFixed(1)}%
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#999', ml: 0.5 }}>

@@ -23,7 +23,7 @@ export default function PerformanceMonitor() {
         const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
         const memory = (performance as any).memory;
         
-        const pageLoad = navigation.loadEventEnd - navigation.navigationStart;
+        const pageLoad = navigation.loadEventEnd - navigation.fetchStart;
         const renderTime = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
         
         const newMetrics: PerformanceMetrics = {

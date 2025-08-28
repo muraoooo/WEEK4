@@ -58,13 +58,13 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
 
   return (
     <Grid container spacing={3}>
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="h6" gutterBottom>
           セッション管理
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
           label="セッションタイムアウト"
@@ -79,7 +79,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
           label="最大ログイン試行回数"
@@ -93,7 +93,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12} md={4}>
+      <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
           label="ロックアウト時間"
@@ -108,14 +108,14 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           パスワードポリシー
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="最小文字数"
@@ -130,7 +130,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <TextField
           fullWidth
           label="パスワード履歴"
@@ -145,7 +145,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Typography variant="subtitle2" gutterBottom>
           複雑性要件
         </Typography>
@@ -189,7 +189,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         </FormGroup>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <TextField
           fullWidth
           label="パスワード有効期限"
@@ -204,14 +204,14 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         />
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           セキュリティ機能
         </Typography>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <FormGroup row>
           <FormControlLabel
             control={
@@ -243,14 +243,14 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         </FormGroup>
       </Grid>
       
-      <Grid item xs={12}>
+      <Grid size={12}>
         <Divider sx={{ my: 2 }} />
         <Typography variant="h6" gutterBottom>
           IPアクセス制限
         </Typography>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card>
           <CardContent>
             <Typography variant="subtitle1" gutterBottom>
@@ -288,7 +288,7 @@ export default function SecuritySettings({ settings = {}, onChange }: SecuritySe
         </Card>
       </Grid>
       
-      <Grid item xs={12} md={6}>
+      <Grid size={{ xs: 12, md: 6 }}>
         <Card>
           <CardContent>
             <Typography variant="subtitle1" gutterBottom>
