@@ -3,9 +3,9 @@
 import dynamic from 'next/dynamic';
 import { Box, CircularProgress } from '@mui/material';
 
-// クライアントコンポーネントを動的インポート（SSRを無効化して秘密情報の露出を防ぐ）
-const SecureReportsManagement = dynamic(
-  () => import('./secure-page'),
+// 権限チェックなしの公開版を使用
+const PublicReportsManagement = dynamic(
+  () => import('./public-page'),
   { 
     ssr: false,
     loading: () => (
@@ -16,7 +16,6 @@ const SecureReportsManagement = dynamic(
   }
 );
 
-// クライアントコンポーネントとして定義
 export default function ReportsPage() {
-  return <SecureReportsManagement />;
+  return <PublicReportsManagement />;
 }
