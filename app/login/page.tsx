@@ -96,6 +96,26 @@ function LoginForm() {
             </Typography>
           </Box>
 
+          {/* デモ用認証情報 */}
+          <Box sx={{ 
+            mt: 2, 
+            p: 2, 
+            bgcolor: 'info.light', 
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'info.main'
+          }}>
+            <Typography variant="subtitle2" color="info.dark" gutterBottom>
+              デモ用認証情報:
+            </Typography>
+            <Typography variant="body2" color="info.dark">
+              メール: admin@example.com
+            </Typography>
+            <Typography variant="body2" color="info.dark">
+              パスワード: Admin123!@#
+            </Typography>
+          </Box>
+
           {error && (
             <Alert severity="error" sx={{ mt: 2 }}>
               {error}
@@ -114,6 +134,7 @@ function LoginForm() {
               autoFocus
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@example.com"
             />
             <TextField
               margin="normal"
@@ -126,7 +147,23 @@ function LoginForm() {
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Admin123!@#"
             />
+            
+            {/* デモ用オートフィルボタン */}
+            <Button
+              type="button"
+              fullWidth
+              variant="outlined"
+              color="info"
+              sx={{ mt: 2 }}
+              onClick={() => {
+                setEmail('admin@example.com');
+                setPassword('Admin123!@#');
+              }}
+            >
+              デモ用認証情報を自動入力
+            </Button>
             <Button
               type="submit"
               fullWidth
