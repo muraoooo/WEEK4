@@ -2,9 +2,9 @@
 
 import dynamic from 'next/dynamic';
 
-// 動作版（テーブル表示あり）
-const WorkingReportsPage = dynamic(
-  () => import('./working-page'),
+// 最終版（完全機能）
+const FinalReportsPage = dynamic(
+  () => import('./final-page'),
   { 
     ssr: false,
     loading: () => <div>Loading reports...</div>
@@ -12,5 +12,5 @@ const WorkingReportsPage = dynamic(
 );
 
 export default function ReportsPage() {
-  return <WorkingReportsPage />;
+  return <FinalReportsPage />;
 }
