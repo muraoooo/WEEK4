@@ -41,9 +41,14 @@ function LoginForm() {
       const data = await response.json();
 
       if (response.ok) {
-        // ログイン成功
+        // ログイン成功 - トークンを統一的に保存
         localStorage.setItem('token', data.token);
+        localStorage.setItem('auth-token', data.token); // 認証チェック用
         localStorage.setItem('refreshToken', data.refreshToken);
+        
+        // クッキーにも保存（ミドルウェア用）
+        document.cookie = `access_token=${data.token}; path=/; secure; samesite=strict`;
+        
         // リダイレクト
         window.location.replace(from);
       } else {
