@@ -1,21 +1,16 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { Box, CircularProgress } from '@mui/material';
 
-// セーフモード版を使用（エラーデバッグ用）
-const SafeReportsManagement = dynamic(
-  () => import('./safe-page'),
+// 最小限の動作確認版
+const MinimalReportsPage = dynamic(
+  () => import('./minimal-page'),
   { 
     ssr: false,
-    loading: () => (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    )
+    loading: () => <div>Loading component...</div>
   }
 );
 
 export default function ReportsPage() {
-  return <SafeReportsManagement />;
+  return <MinimalReportsPage />;
 }
