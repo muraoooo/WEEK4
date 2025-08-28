@@ -14,25 +14,44 @@ export function useSecureAdminAuth() {
     loading: false,
     error: null
   });
+  const [mounted, setMounted] = useState(false);
+
+  // CSR対応 - マウント確認
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // 管理者トークンを取得
   const getAdminToken = useCallback(async () => {
-    // セッションストレージから既存のトークンを確認
-    const cached = sessionStorage.getItem('admin-api-token');
-    const cachedExpiry = sessionStorage.getItem('admin-api-token-expiry');
+    // ブラウザ環境でのみ実行
+    if (typeof window === 'undefined' || !mounted) return null;
     
-    if (cached && cachedExpiry) {
-      const expiry = parseInt(cachedExpiry);
-      if (Date.now() < expiry) {
-        return cached;
+    // セッションストレージから既存のトークンを確認
+    try {
+      const cached = sessionStorage.getItem('admin-api-token');
+      const cachedExpiry = sessionStorage.getItem('admin-api-token-expiry');
+      
+      if (cached && cachedExpiry) {
+        const expiry = parseInt(cachedExpiry);
+        if (Date.now() < expiry) {
+          return cached;
+        }
       }
+    } catch (e) {
+      console.warn('SessionStorage access error:', e);
     }
 
     setAuthState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
       // ユーザーの認証トークンを取得（セッションから）
-      const userToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      let userToken: string | null = null;
+      
+      if (typeof window !== 'undefined') {
+        userToken = localStorage.getItem('token') || 
+                   localStorage.getItem('auth-token') || 
+                   sessionStorage.getItem('auth-token');
+      }
       
       if (!userToken) {
         throw new Error('認証が必要です');
@@ -62,8 +81,14 @@ export function useSecureAdminAuth() {
       const data = await response.json();
       
       // トークンをセッションストレージに保存（4分30秒）
-      sessionStorage.setItem('admin-api-token', data.token);
-      sessionStorage.setItem('admin-api-token-expiry', String(Date.now() + 4.5 * 60 * 1000));
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.setItem('admin-api-token', data.token);
+          sessionStorage.setItem('admin-api-token-expiry', String(Date.now() + 4.5 * 60 * 1000));
+        } catch (e) {
+          console.warn('SessionStorage write error:', e);
+        }
+      }
       
       setAuthState({
         token: data.token,
@@ -82,18 +107,24 @@ export function useSecureAdminAuth() {
       });
       
       // キャッシュをクリア
-      sessionStorage.removeItem('admin-api-token');
-      sessionStorage.removeItem('admin-api-token-expiry');
+      if (typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem('admin-api-token');
+          sessionStorage.removeItem('admin-api-token-expiry');
+        } catch (e) {
+          console.warn('SessionStorage cleanup error:', e);
+        }
+      }
       
       throw error;
     }
-  }, []);
+  }, [mounted]);
 
   // 認証ヘッダーを生成
   const getAuthHeaders = useCallback(async (): Promise<HeadersInit> => {
     const token = await getAdminToken();
     return {
-      'x-admin-token': token,
+      'x-admin-token': token || '',
       'Content-Type': 'application/json'
     };
   }, [getAdminToken]);
@@ -107,7 +138,7 @@ export function useSecureAdminAuth() {
     
     const headers = {
       ...options.headers,
-      'x-admin-token': token
+      'x-admin-token': token || ''
     };
 
     return fetch(url, {
@@ -118,8 +149,14 @@ export function useSecureAdminAuth() {
 
   // トークンをクリア
   const clearToken = useCallback(() => {
-    sessionStorage.removeItem('admin-api-token');
-    sessionStorage.removeItem('admin-api-token-expiry');
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('admin-api-token');
+        sessionStorage.removeItem('admin-api-token-expiry');
+      } catch (e) {
+        console.warn('SessionStorage clear error:', e);
+      }
+    }
     setAuthState({
       token: null,
       loading: false,
@@ -129,22 +166,28 @@ export function useSecureAdminAuth() {
 
   // 初回マウント時にトークンを確認
   useEffect(() => {
-    const cached = sessionStorage.getItem('admin-api-token');
-    const cachedExpiry = sessionStorage.getItem('admin-api-token-expiry');
+    if (!mounted || typeof window === 'undefined') return;
     
-    if (cached && cachedExpiry) {
-      const expiry = parseInt(cachedExpiry);
-      if (Date.now() < expiry) {
-        setAuthState({
-          token: cached,
-          loading: false,
-          error: null
-        });
-      } else {
-        clearToken();
+    try {
+      const cached = sessionStorage.getItem('admin-api-token');
+      const cachedExpiry = sessionStorage.getItem('admin-api-token-expiry');
+      
+      if (cached && cachedExpiry) {
+        const expiry = parseInt(cachedExpiry);
+        if (Date.now() < expiry) {
+          setAuthState({
+            token: cached,
+            loading: false,
+            error: null
+          });
+        } else {
+          clearToken();
+        }
       }
+    } catch (e) {
+      console.warn('SessionStorage access error in useEffect:', e);
     }
-  }, [clearToken]);
+  }, [mounted, clearToken]);
 
   return {
     ...authState,
