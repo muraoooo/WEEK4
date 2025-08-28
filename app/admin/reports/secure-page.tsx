@@ -28,7 +28,6 @@ import {
   Alert,
   Tabs,
   Tab,
-  Grid,
   CircularProgress,
   Skeleton
 } from '@mui/material';
@@ -225,56 +224,48 @@ export default function SecureReportsManagement() {
 
       {/* 統計情報 */}
       {stats && (
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  総通報数
-                </Typography>
-                <Typography variant="h4">
-                  {stats.totalReports}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  未処理
-                </Typography>
-                <Typography variant="h4" color="warning.main">
-                  {stats.pendingCount}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  平均優先度
-                </Typography>
-                <Typography variant="h4">
-                  {stats.avgPriority.toFixed(1)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Card>
-              <CardContent>
-                <Typography color="textSecondary" gutterBottom>
-                  虚偽通報スコア
-                </Typography>
-                <Typography variant="h4">
-                  {stats.avgFalseReportScore.toFixed(0)}
-                </Typography>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+          <Card sx={{ flex: '1 1 250px' }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                総通報数
+              </Typography>
+              <Typography variant="h4">
+                {stats.totalReports}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px' }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                未処理
+              </Typography>
+              <Typography variant="h4" color="warning.main">
+                {stats.pendingCount}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px' }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                平均優先度
+              </Typography>
+              <Typography variant="h4">
+                {stats.avgPriority.toFixed(1)}
+              </Typography>
+            </CardContent>
+          </Card>
+          <Card sx={{ flex: '1 1 250px' }}>
+            <CardContent>
+              <Typography color="textSecondary" gutterBottom>
+                虚偽通報スコア
+              </Typography>
+              <Typography variant="h4">
+                {stats.avgFalseReportScore.toFixed(0)}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Box>
       )}
 
       {/* フィルター */}

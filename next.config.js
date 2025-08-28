@@ -6,6 +6,8 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: false,
   },
+  // Next.js page extensions
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },

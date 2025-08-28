@@ -1,8 +1,9 @@
+'use client';
+
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
 import { Box, CircularProgress } from '@mui/material';
 
-// クライアントコンポーネントを動的インポート（SSRを無効化）
+// クライアントコンポーネントを動的インポート（SSRを無効化して秘密情報の露出を防ぐ）
 const SecureReportsManagement = dynamic(
   () => import('./secure-page'),
   { 
@@ -15,15 +16,7 @@ const SecureReportsManagement = dynamic(
   }
 );
 
-// サーバーコンポーネント
+// クライアントコンポーネントとして定義
 export default function ReportsPage() {
-  return (
-    <Suspense fallback={
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-        <CircularProgress />
-      </Box>
-    }>
-      <SecureReportsManagement />
-    </Suspense>
-  );
+  return <SecureReportsManagement />;
 }
