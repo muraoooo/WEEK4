@@ -159,7 +159,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs?${params}`, {
         headers: {
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || ''
+          'x-admin-secret': 'admin-development-secret-key'
         }
       });
       
@@ -202,7 +202,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs/verify?${params}`, {
         headers: {
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || ''
+          'x-admin-secret': 'admin-development-secret-key'
         }
       });
       
@@ -230,7 +230,7 @@ export default function AuditLogsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || ''
+          'x-admin-secret': 'admin-development-secret-key'
         },
         body: JSON.stringify({ daysOld })
       });
@@ -259,7 +259,7 @@ export default function AuditLogsPage() {
       
       const response = await fetch(`/api/admin/audit-logs/export?${params}`, {
         headers: {
-          'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || ''
+          'x-admin-secret': 'admin-development-secret-key'
         }
       });
       
