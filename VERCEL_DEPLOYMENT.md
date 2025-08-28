@@ -1,80 +1,90 @@
-# Vercel デプロイメントガイド
+# Vercel Deployment Configuration
 
-## 🚀 デプロイ手順
+## Required Environment Variables
 
-### 1. GitHub リポジトリ
-✅ 既に設定済み: https://github.com/muraoooo/WEEK4.git
+Vercelのダッシュボードで以下の環境変数を設定してください：
 
-### 2. Vercel でのプロジェクト作成
-
-1. [Vercel](https://vercel.com) にログイン
-2. "New Project" をクリック
-3. GitHub リポジトリ `muraoooo/WEEK4` をインポート
-4. プロジェクト名を設定（例: secure-session-system）
-
-### 3. 環境変数の設定
-
-Vercel のプロジェクト設定で以下の環境変数を追加してください：
-
-```env
-# MongoDB接続
+### 1. Database Configuration
+```
 MONGODB_URI=mongodb+srv://adimin:gpt5love@cluster0.zu4p8ot.mongodb.net/embrocal?retryWrites=true&w=majority&appName=Cluster0
-
-# JWT シークレット（本番環境用に変更してください）
-JWT_ACCESS_SECRET=your-secure-access-secret-here
-JWT_REFRESH_SECRET=your-secure-refresh-secret-here
-
-# その他のオプション
-CUSTOM_KEY=your-custom-key-here
 ```
 
-⚠️ **重要**: 本番環境では必ず強力なランダムな文字列を JWT シークレットに使用してください。
+### 2. Authentication Secrets
+```
+JWT_SECRET=secure-jwt-secret-key-for-production
+JWT_ACCESS_SECRET=access-token-secret-key-production
+JWT_REFRESH_SECRET=refresh-token-secret-key-production
+ADMIN_SECRET_KEY=your-secure-admin-key-for-production
+```
 
-### 4. ビルド設定
+### 3. Email Configuration
+```
+EMAIL_SERVER_USER=noreply@miraichimoonshot.sakura.ne.jp
+EMAIL_SERVER_PASSWORD=Vhdyt4@k52uhViB
+EMAIL_SERVER_HOST=miraichimoonshot.sakura.ne.jp
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_SECURE=false
+EMAIL_FROM=Survibe <noreply@miraichimoonshot.sakura.ne.jp>
+```
 
-Vercel は自動的に Next.js プロジェクトを検出しますが、以下の設定を確認してください：
+### 4. NextAuth Configuration
+```
+NEXTAUTH_URL=https://your-vercel-app.vercel.app
+NEXTAUTH_SECRET=your-nextauth-secret-key
+```
 
-- **Framework Preset**: Next.js
-- **Build Command**: `npm run build` (デフォルト)
-- **Output Directory**: `.next` (デフォルト)
-- **Install Command**: `npm install` (デフォルト)
+## Setting Environment Variables in Vercel
 
-### 5. デプロイ
+1. Go to your Vercel project dashboard
+2. Navigate to Settings → Environment Variables
+3. Add each variable listed above
+4. Select the appropriate environment (Production, Preview, Development)
+5. Save the changes
 
-1. "Deploy" ボタンをクリック
-2. ビルドログを確認
-3. デプロイが成功すると、自動的に URL が生成されます
+## Important Security Notes
 
-### 6. デプロイ後の確認
+- **Never commit sensitive environment variables to Git**
+- Use different values for production than development
+- Regularly rotate secrets and API keys
+- For `ADMIN_SECRET_KEY`, use a strong, unique value in production
 
-デプロイ後、以下を確認してください：
+## Deployment Commands
 
-1. **ホームページ**: `https://your-app.vercel.app/`
-2. **ログインページ**: `https://your-app.vercel.app/login`
-3. **管理ダッシュボード**: `https://your-app.vercel.app/admin/dashboard`
+### Manual Deployment
+```bash
+vercel --prod
+```
 
-### 📝 トラブルシューティング
+### Automatic Deployment
+Vercel automatically deploys when you push to the main branch.
 
-#### MongoDB 接続エラー
-- MongoDB Atlas のネットワークアクセスで、Vercel の IP アドレス（0.0.0.0/0）を許可してください
+## Post-Deployment Checklist
 
-#### ビルドエラー
-- Node.js バージョンが 18.18.0 以上であることを確認
-- 依存関係が正しくインストールされているか確認
+- [ ] Verify MongoDB connection is working
+- [ ] Test login functionality with admin credentials
+- [ ] Check audit logs are being recorded
+- [ ] Verify email sending (if applicable)
+- [ ] Test all admin panel features
+- [ ] Monitor error logs in Vercel dashboard
 
-#### 500 エラー
-- 環境変数が正しく設定されているか確認
-- Vercel のログで詳細なエラーを確認
+## Troubleshooting
 
-### 🔒 セキュリティ推奨事項
+### MongoDB Connection Issues
+- Ensure IP whitelist in MongoDB Atlas includes Vercel's IP ranges
+- Verify connection string format and credentials
 
-1. **JWT シークレット**: 本番環境では必ず強力なランダム文字列を使用
-2. **MongoDB パスワード**: 定期的に変更
-3. **CORS 設定**: 必要に応じて制限を追加
-4. **レート制限**: 本番環境では Redis などを使用した永続的なレート制限を実装
+### Authentication Failures
+- Check JWT secrets are correctly set
+- Verify ADMIN_SECRET_KEY matches between client and server
 
-### 📚 参考リンク
+### Build Failures
+- Check build logs in Vercel dashboard
+- Ensure all dependencies are listed in package.json
+- Verify Node.js version compatibility
 
-- [Vercel Documentation](https://vercel.com/docs)
-- [Next.js on Vercel](https://vercel.com/docs/frameworks/nextjs)
-- [Environment Variables](https://vercel.com/docs/projects/environment-variables)
+## Support
+
+For deployment issues:
+1. Check Vercel build and function logs
+2. Review MongoDB Atlas connection logs
+3. Verify all environment variables are set correctly

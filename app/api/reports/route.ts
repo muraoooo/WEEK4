@@ -1,337 +1,300 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { connectDatabase } from '@/lib/database';
-import mongoose from 'mongoose';
+import { MongoClient, ObjectId } from 'mongodb';
+import { config } from '@/lib/config';
 
-// 優先順位スコア計算
-function calculatePriorityScore(
-  category: string,
-  reporterHistory: any,
-  targetHistory: any,
-  previousReports: any[]
-): { score: number; priority: 'critical' | 'high' | 'medium' | 'low'; falseReportProbability: number } {
-  let score = 0;
-  let falseReportProbability = 0;
+const MONGODB_URI = config.mongodbUri;
 
-  // カテゴリ別の基本スコア
-  const categoryScores: Record<string, number> = {
-    violence: 90,
-    hate_speech: 85,
-    child_safety: 100,
-    fraud: 95,
-    harassment: 75,
-    inappropriate: 60,
-    misinformation: 50,
-    spam: 30,
-    copyright: 40,
-    other: 20,
+// 危険なキーワードリスト（優先度を上げるため）
+const DANGER_KEYWORDS = [
+  '殺', '死', '自殺', '暴力', '爆破', '薬物', 'ドラッグ',
+  'kill', 'suicide', 'violence', 'bomb', 'drug'
+];
+
+// 通報カテゴリの基本優先度
+const CATEGORY_PRIORITY: { [key: string]: number } = {
+  'SPAM': 1,
+  'HARASSMENT': 4,
+  'VIOLENCE': 5,
+  'HATE_SPEECH': 5,
+  'MISINFORMATION': 2,
+  'INAPPROPRIATE': 3,
+  'COPYRIGHT': 2,
+  'OTHER': 1
+};
+
+interface Report {
+  _id?: ObjectId;
+  targetId: string;
+  targetType: 'post' | 'comment' | 'user';
+  category: string;
+  description: string;
+  reporterId: string;
+  status: 'pending' | 'reviewing' | 'resolved' | 'rejected';
+  priority: number;
+  metadata: {
+    targetContent?: string;
+    timestamp: string;
+    [key: string]: any;
   };
-
-  score = categoryScores[category] || 20;
-
-  // 通報者の信頼度による調整
-  if (reporterHistory) {
-    const { totalReports, validReports, falseReports } = reporterHistory;
-    const validRate = totalReports > 0 ? validReports / totalReports : 0.5;
-    
-    // 信頼度による乗数（0.5〜1.5）
-    const trustMultiplier = 0.5 + validRate;
-    score *= trustMultiplier;
-
-    // 虚偽通報確率の計算
-    if (totalReports >= 5) {
-      falseReportProbability = falseReports / totalReports;
-      
-      // 虚偽通報が多い場合はスコアを大幅に下げる
-      if (falseReportProbability > 0.5) {
-        score *= 0.3;
-      } else if (falseReportProbability > 0.3) {
-        score *= 0.6;
-      }
-    }
-  }
-
-  // 対象の過去の違反履歴による調整
-  if (targetHistory) {
-    const { violationCount, reportedCount, lastViolation } = targetHistory;
-    
-    if (violationCount > 0) {
-      // 違反履歴がある場合はスコアアップ
-      score += Math.min(violationCount * 10, 30);
-    }
-
-    if (reportedCount > 5) {
-      // 頻繁に報告される対象
-      score += 15;
-    }
-
-    // 最近の違反があるか
-    if (lastViolation) {
-      const daysSinceViolation = (Date.now() - new Date(lastViolation).getTime()) / (1000 * 60 * 60 * 24);
-      if (daysSinceViolation < 7) {
-        score += 20;
-      } else if (daysSinceViolation < 30) {
-        score += 10;
-      }
-    }
-  }
-
-  // 同じ対象への重複通報チェック
-  const recentDuplicates = previousReports.filter(r => {
-    const hoursSinceReport = (Date.now() - new Date(r.createdAt).getTime()) / (1000 * 60 * 60);
-    return hoursSinceReport < 24;
-  });
-
-  if (recentDuplicates.length > 0) {
-    // 複数人から通報されている場合は重要度アップ
-    score += Math.min(recentDuplicates.length * 15, 45);
-  }
-
-  // 最終的な優先順位の判定
-  let priority: 'critical' | 'high' | 'medium' | 'low';
-  if (score >= 85) {
-    priority = 'critical';
-  } else if (score >= 60) {
-    priority = 'high';
-  } else if (score >= 35) {
-    priority = 'medium';
-  } else {
-    priority = 'low';
-  }
-
-  // 虚偽通報の可能性が高い場合は優先度を下げる
-  if (falseReportProbability > 0.7 && priority !== 'critical') {
-    priority = 'low';
-  }
-
-  return { score, priority, falseReportProbability };
+  createdAt: Date;
+  updatedAt: Date;
+  resolution?: {
+    action: string;
+    resolvedBy: string;
+    resolvedAt: Date;
+    notes: string;
+  };
+  falseReportScore?: number;
 }
 
-// 通報者へのフィードバックメッセージ生成
-function generateFeedbackMessage(
-  priority: string,
+// 優先度の計算
+async function calculatePriority(
   category: string,
-  falseReportProbability: number
-): { message: string; estimatedTime: string; autoAction?: string } {
-  let message = '';
-  let estimatedTime = '';
-  let autoAction;
-
-  if (falseReportProbability > 0.7) {
-    message = '通報を受け付けました。内容を慎重に確認させていただきます。';
-    estimatedTime = '5-7営業日';
-  } else if (priority === 'critical') {
-    message = '重要な通報として優先的に対処いたします。';
-    estimatedTime = '24時間以内';
-    
-    // 危険なカテゴリは自動的に一時非表示
-    if (['violence', 'child_safety', 'fraud'].includes(category)) {
-      autoAction = 'temporary_hide';
-    }
-  } else if (priority === 'high') {
-    message = 'ご報告ありがとうございます。速やかに確認し対処いたします。';
-    estimatedTime = '1-2営業日';
-  } else if (priority === 'medium') {
-    message = '通報を受け付けました。順次確認させていただきます。';
-    estimatedTime = '3-5営業日';
-  } else {
-    message = '通報を受け付けました。内容を確認させていただきます。';
-    estimatedTime = '5-7営業日';
+  targetId: string,
+  reporterId: string,
+  description: string,
+  client: MongoClient
+): Promise<number> {
+  const db = client.db('embrocal');
+  const reportsCollection = db.collection('reports');
+  
+  let priority = CATEGORY_PRIORITY[category] || 1;
+  
+  // 修飾子を計算
+  const modifiers: number[] = [];
+  
+  // 1. 同一ターゲットへの通報数をチェック
+  const reportCount = await reportsCollection.countDocuments({
+    targetId,
+    status: { $in: ['pending', 'reviewing'] }
+  });
+  if (reportCount >= 3) {
+    modifiers.push(2); // 複数通報があれば優先度+2
   }
-
-  return { message, estimatedTime, autoAction };
+  
+  // 2. 通報者の信頼度をチェック（過去の通報履歴から）
+  const reporterHistory = await reportsCollection.find({
+    reporterId,
+    status: 'resolved'
+  }).limit(10).toArray();
+  
+  const validReports = reporterHistory.filter(r => r.resolution?.action !== 'rejected').length;
+  const totalReports = reporterHistory.length;
+  
+  if (totalReports > 0) {
+    const trustScore = validReports / totalReports;
+    if (trustScore >= 0.8) {
+      modifiers.push(1); // 信頼度高い通報者なら+1
+    } else if (trustScore < 0.3) {
+      modifiers.push(-2); // 信頼度低い通報者なら-2
+    }
+  }
+  
+  // 3. 危険なキーワードをチェック
+  const contentToCheck = (description || '').toLowerCase();
+  const hasDangerKeywords = DANGER_KEYWORDS.some(keyword => 
+    contentToCheck.includes(keyword.toLowerCase())
+  );
+  if (hasDangerKeywords) {
+    modifiers.push(2); // 危険なキーワードがあれば+2
+  }
+  
+  // 最終優先度を計算（1-10の範囲に収める）
+  const totalPriority = Math.min(10, Math.max(1, priority + modifiers.reduce((a, b) => a + b, 0)));
+  
+  return totalPriority;
 }
 
-// POST: 新規通報作成
+// 虚偽通報の検出
+async function detectFalseReport(
+  reporterId: string,
+  targetId: string,
+  client: MongoClient
+): Promise<number> {
+  const db = client.db('embrocal');
+  const reportsCollection = db.collection('reports');
+  
+  let falseReportScore = 0;
+  
+  // 1. 頻繁な通報をチェック（過去24時間）
+  const recentReports = await reportsCollection.countDocuments({
+    reporterId,
+    createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
+  });
+  if (recentReports > 5) {
+    falseReportScore += 30; // 1日に5件以上は疑わしい
+  }
+  
+  // 2. 同一ユーザーへの繰り返し通報をチェック
+  const targetReports = await reportsCollection.countDocuments({
+    reporterId,
+    targetId,
+    status: { $in: ['rejected', 'pending'] }
+  });
+  if (targetReports > 2) {
+    falseReportScore += 40; // 同じターゲットへの繰り返し通報は疑わしい
+  }
+  
+  // 3. 過去の却下率をチェック
+  const rejectedCount = await reportsCollection.countDocuments({
+    reporterId,
+    status: 'rejected'
+  });
+  const totalCount = await reportsCollection.countDocuments({ reporterId });
+  
+  if (totalCount > 5) {
+    const rejectionRate = rejectedCount / totalCount;
+    if (rejectionRate > 0.7) {
+      falseReportScore += 30; // 70%以上却下されていれば疑わしい
+    }
+  }
+  
+  return Math.min(100, falseReportScore); // 0-100のスコアに収める
+}
+
+// POST: 新規通報を作成
 export async function POST(request: NextRequest) {
+  const client = new MongoClient(MONGODB_URI);
+  
   try {
-    await connectDatabase();
-    
     const body = await request.json();
     const {
-      targetType,
       targetId,
+      targetType,
       category,
       description,
       reporterId,
-      targetAuthorId,
+      metadata
     } = body;
-
-    // 必須項目のバリデーション
-    if (!targetType || !targetId || !category || !reporterId) {
+    
+    // バリデーション
+    if (!targetId || !targetType || !category || !reporterId) {
       return NextResponse.json(
         { error: '必須項目が不足しています' },
         { status: 400 }
       );
     }
-
-    const reportsCollection = mongoose.connection.collection('reports');
-    const usersCollection = mongoose.connection.collection('users');
-
-    // 同一ユーザーからの重複通報チェック（24時間以内）
-    const existingReport = await reportsCollection.findOne({
-      reporterId,
-      targetId,
-      targetType,
-      createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-    });
-
-    if (existingReport) {
+    
+    if (!['post', 'comment', 'user'].includes(targetType)) {
       return NextResponse.json(
-        { error: 'すでに通報済みです。24時間以内に同じ対象を複数回通報することはできません。' },
+        { error: '無効なターゲットタイプです' },
         { status: 400 }
       );
     }
-
-    // 通報者の履歴を取得
-    const reporterHistory = await reportsCollection.aggregate([
-      { $match: { reporterId } },
-      {
-        $group: {
-          _id: null,
-          totalReports: { $sum: 1 },
-          validReports: {
-            $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] }
-          },
-          falseReports: {
-            $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] }
-          }
-        }
-      }
-    ]).toArray();
-
-    // 対象の違反履歴を取得
-    let targetHistory = null;
-    if (targetAuthorId) {
-      const targetUser = await usersCollection.findOne(
-        { _id: new mongoose.Types.ObjectId(targetAuthorId) }
+    
+    if (!CATEGORY_PRIORITY[category]) {
+      return NextResponse.json(
+        { error: '無効なカテゴリです' },
+        { status: 400 }
       );
-      
-      if (targetUser) {
-        const targetReports = await reportsCollection.aggregate([
-          { 
-            $match: { 
-              targetAuthorId,
-              status: { $in: ['resolved', 'reviewing'] }
-            }
-          },
-          {
-            $group: {
-              _id: null,
-              violationCount: {
-                $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] }
-              },
-              reportedCount: { $sum: 1 }
-            }
-          }
-        ]).toArray();
-
-        targetHistory = {
-          violationCount: targetReports[0]?.violationCount || 0,
-          reportedCount: targetReports[0]?.reportedCount || 0,
-          lastViolation: targetUser.lastViolation || null,
-          warningCount: targetUser.warningCount || 0,
-        };
-      }
     }
-
-    // 同じ対象への過去の通報を取得
-    const previousReports = await reportsCollection
-      .find({ targetId, targetType })
-      .sort({ createdAt: -1 })
-      .limit(10)
-      .toArray();
-
-    // 優先順位とスコアの計算
-    const { score, priority, falseReportProbability } = calculatePriorityScore(
-      category,
-      reporterHistory[0] || null,
-      targetHistory,
-      previousReports
-    );
-
-    // フィードバックメッセージの生成
-    const feedback = generateFeedbackMessage(priority, category, falseReportProbability);
-
-    // 通報データの作成
-    const reportData = {
-      reporterId,
-      targetType,
+    
+    await client.connect();
+    const db = client.db('embrocal');
+    const reportsCollection = db.collection('reports');
+    
+    // 重複通報をチェック
+    const existingReport = await reportsCollection.findOne({
       targetId,
-      targetAuthorId,
+      reporterId,
+      status: { $in: ['pending', 'reviewing'] }
+    });
+    
+    if (existingReport) {
+      await client.close();
+      return NextResponse.json(
+        { error: 'この内容はすでに通報済みです' },
+        { status: 409 }
+      );
+    }
+    
+    // 優先度を計算
+    const priority = await calculatePriority(
+      category,
+      targetId,
+      reporterId,
+      description,
+      client
+    );
+    
+    // 虚偽通報スコアを計算
+    const falseReportScore = await detectFalseReport(reporterId, targetId, client);
+    
+    // 新しい通報を作成
+    const report: Report = {
+      targetId,
+      targetType,
       category,
       description: description || '',
-      priority,
-      priorityScore: score,
-      falseReportScore: falseReportProbability,
+      reporterId,
       status: 'pending',
-      feedback: feedback.message,
-      estimatedReviewTime: feedback.estimatedTime,
+      priority,
+      falseReportScore,
+      metadata: {
+        ...metadata,
+        timestamp: metadata?.timestamp || new Date().toISOString(),
+        ipAddress: request.headers.get('x-forwarded-for') || 
+                  request.headers.get('x-real-ip') || 
+                  'unknown',
+        userAgent: request.headers.get('user-agent') || 'unknown'
+      },
       createdAt: new Date(),
-      updatedAt: new Date(),
+      updatedAt: new Date()
     };
-
-    // 通報を保存
-    const result = await reportsCollection.insertOne(reportData);
-
-    // 自動アクションの実行（重大な違反の場合）
-    if (feedback.autoAction === 'temporary_hide') {
-      // コンテンツを一時的に非表示にする
+    
+    const result = await reportsCollection.insertOne(report);
+    
+    // 高優先度の通報の場合、即座にターゲットを非表示にする
+    if (priority >= 8) {
+      const postsCollection = db.collection('posts');
       if (targetType === 'post') {
-        const postsCollection = mongoose.connection.collection('posts');
         await postsCollection.updateOne(
-          { _id: new mongoose.Types.ObjectId(targetId) },
+          { _id: new ObjectId(targetId) },
           { 
             $set: { 
               isHidden: true,
-              hiddenReason: 'auto_report',
+              hiddenReason: 'high_priority_report',
               hiddenAt: new Date()
             }
           }
         );
       }
     }
-
-    // 監査ログの記録
-    const auditLogsCollection = mongoose.connection.collection('audit_logs');
+    
+    // 監査ログに記録
+    const auditLogsCollection = db.collection('audit_logs');
     await auditLogsCollection.insertOne({
-      action: 'REPORT_SUBMITTED',
-      reporterId,
-      targetId,
-      targetType,
-      category,
-      priority,
       timestamp: new Date(),
+      action: 'REPORT_CREATED',
+      eventType: 'REPORT_CREATE',
+      eventCategory: 'moderation',
+      severity: priority >= 7 ? 'high' : priority >= 4 ? 'medium' : 'low',
+      userId: reporterId,
+      targetId,
       details: {
-        priorityScore: score,
-        falseReportProbability,
-        autoAction: feedback.autoAction,
-      }
-    });
-
-    // 統計情報の更新
-    const statsCollection = mongoose.connection.collection('report_stats');
-    await statsCollection.updateOne(
-      { date: new Date().toISOString().split('T')[0] },
-      {
-        $inc: {
-          totalReports: 1,
-          [`categories.${category}`]: 1,
-          [`priorities.${priority}`]: 1,
-        }
+        reportId: result.insertedId,
+        category,
+        priority,
+        falseReportScore,
+        targetType
       },
-      { upsert: true }
-    );
-
+      ipAddress: report.metadata.ipAddress,
+      userAgent: report.metadata.userAgent
+    });
+    
+    await client.close();
+    
     return NextResponse.json({
       success: true,
-      reportId: result.insertedId.toString(),
-      message: feedback.message,
-      estimatedTime: feedback.estimatedTime,
+      reportId: result.insertedId,
+      message: '通報を受け付けました。内容を確認し、適切な対応を行います。',
       priority,
+      estimatedResponseTime: priority >= 7 ? '1時間以内' : priority >= 4 ? '24時間以内' : '3営業日以内'
     });
-
+    
   } catch (error) {
-    console.error('Report submission error:', error);
+    console.error('Report creation error:', error);
+    await client.close();
     return NextResponse.json(
       { error: '通報の処理中にエラーが発生しました' },
       { status: 500 }
@@ -339,92 +302,104 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET: 通報一覧取得（管理者用）
+// GET: 通報一覧を取得（管理者用）
 export async function GET(request: NextRequest) {
+  const client = new MongoClient(MONGODB_URI);
+  
   try {
-    await connectDatabase();
-
-    const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'all';
-    const priority = searchParams.get('priority') || 'all';
-    const category = searchParams.get('category') || 'all';
+    // 管理者権限の確認
+    const isAdmin = request.headers.get('x-admin-secret') === config.adminSecretKey;
+    if (!isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
-    const sortBy = searchParams.get('sortBy') || 'createdAt';
-    const sortOrder = searchParams.get('sortOrder') || 'desc';
-
-    const reportsCollection = mongoose.connection.collection('reports');
-
-    // フィルタ条件の構築
+    const status = searchParams.get('status');
+    const category = searchParams.get('category');
+    const sortBy = searchParams.get('sortBy') || 'priority';
+    const order = searchParams.get('order') === 'asc' ? 1 : -1;
+    
+    const skip = (page - 1) * limit;
+    
+    await client.connect();
+    const db = client.db('embrocal');
+    const reportsCollection = db.collection('reports');
+    
+    // フィルタ条件を構築
     const filter: any = {};
-    if (status !== 'all') filter.status = status;
-    if (priority !== 'all') filter.priority = priority;
-    if (category !== 'all') filter.category = category;
-
+    if (status) filter.status = status;
+    if (category) filter.category = category;
+    
     // ソート条件
     const sort: any = {};
-    sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
-
-    // データ取得
-    const skip = (page - 1) * limit;
-    const [reports, totalCount] = await Promise.all([
+    if (sortBy === 'priority') {
+      sort.priority = -1; // 優先度は高い順
+      sort.createdAt = -1;
+    } else {
+      sort[sortBy] = order;
+    }
+    
+    // データを取得
+    const [reports, total] = await Promise.all([
       reportsCollection
         .find(filter)
         .sort(sort)
-        .skip(skip)
         .limit(limit)
+        .skip(skip)
         .toArray(),
       reportsCollection.countDocuments(filter)
     ]);
-
-    // 統計情報の取得
+    
+    // 統計情報を計算
     const stats = await reportsCollection.aggregate([
       {
-        $facet: {
-          byStatus: [
-            { $group: { _id: '$status', count: { $sum: 1 } } }
-          ],
-          byPriority: [
-            { $group: { _id: '$priority', count: { $sum: 1 } } }
-          ],
-          byCategory: [
-            { $group: { _id: '$category', count: { $sum: 1 } } }
-          ],
-          recentTrends: [
-            {
-              $match: {
-                createdAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
-              }
-            },
-            {
-              $group: {
-                _id: {
-                  $dateToString: { format: '%Y-%m-%d', date: '$createdAt' }
-                },
-                count: { $sum: 1 }
-              }
-            },
-            { $sort: { _id: 1 } }
-          ]
+        $group: {
+          _id: null,
+          totalReports: { $sum: 1 },
+          pendingCount: {
+            $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
+          },
+          reviewingCount: {
+            $sum: { $cond: [{ $eq: ['$status', 'reviewing'] }, 1, 0] }
+          },
+          resolvedCount: {
+            $sum: { $cond: [{ $eq: ['$status', 'resolved'] }, 1, 0] }
+          },
+          rejectedCount: {
+            $sum: { $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0] }
+          },
+          avgPriority: { $avg: '$priority' },
+          avgFalseReportScore: { $avg: '$falseReportScore' }
         }
       }
     ]).toArray();
-
+    
+    await client.close();
+    
     return NextResponse.json({
       reports,
-      pagination: {
-        page,
-        limit,
-        total: totalCount,
-        totalPages: Math.ceil(totalCount / limit)
-      },
-      stats: stats[0]
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+      stats: stats[0] || {
+        totalReports: 0,
+        pendingCount: 0,
+        reviewingCount: 0,
+        resolvedCount: 0,
+        rejectedCount: 0,
+        avgPriority: 0,
+        avgFalseReportScore: 0
+      }
     });
-
+    
   } catch (error) {
-    console.error('Get reports error:', error);
+    console.error('Error fetching reports:', error);
+    await client.close();
     return NextResponse.json(
-      { error: '通報データの取得に失敗しました' },
+      { error: 'Failed to fetch reports' },
       { status: 500 }
     );
   }

@@ -1,216 +1,168 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
+  Button,
   Stepper,
   Step,
   StepLabel,
-  Button,
-  Typography,
-  FormControl,
-  FormControlLabel,
   RadioGroup,
+  FormControlLabel,
   Radio,
   TextField,
-  Box,
   Alert,
+  Box,
+  Typography,
   Chip,
-  Paper,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   CircularProgress,
   Fade,
   IconButton,
+  Paper
 } from '@mui/material';
 import {
-  Flag,
-  Warning,
-  Block,
-  PersonOff,
-  ChatBubble,
-  Article,
-  CheckCircle,
   Close,
-  ErrorOutline,
-  SecurityOutlined,
-  ChildCare,
-  MonetizationOn,
-  Copyright,
-  Gavel,
+  ReportProblem,
+  CheckCircle,
+  Warning,
+  Info
 } from '@mui/icons-material';
-
-export type ReportCategory = 
-  | 'spam'
-  | 'harassment'
-  | 'violence'
-  | 'hate_speech'
-  | 'misinformation'
-  | 'inappropriate'
-  | 'child_safety'
-  | 'fraud'
-  | 'copyright'
-  | 'other';
-
-interface ReportTarget {
-  type: 'post' | 'comment' | 'user';
-  id: string;
-  content?: string;
-  authorName?: string;
-  authorId?: string;
-}
 
 interface ReportDialogProps {
   open: boolean;
   onClose: () => void;
-  target: ReportTarget;
-  currentUserId: string;
-  onSuccess?: (reportId: string) => void;
+  targetId: string;
+  targetType: 'post' | 'comment' | 'user';
+  targetContent?: string;
+  reporterId: string;
 }
 
-const reportCategories = [
+interface ReportCategory {
+  id: string;
+  label: string;
+  description: string;
+  priority: number;
+  icon?: React.ReactNode;
+}
+
+const REPORT_CATEGORIES: ReportCategory[] = [
   {
-    value: 'spam' as ReportCategory,
-    label: 'スパムまたは誤解を招くコンテンツ',
-    icon: <Block />,
-    priority: 2,
-    description: '繰り返しの投稿、偽の情報、クリックベイトなど',
-  },
-  {
-    value: 'harassment' as ReportCategory,
-    label: 'いじめや嫌がらせ',
-    icon: <PersonOff />,
-    priority: 4,
-    description: '個人への攻撃、脅迫、プライバシー侵害など',
-  },
-  {
-    value: 'violence' as ReportCategory,
-    label: '暴力的または危険なコンテンツ',
-    icon: <Warning color="error" />,
-    priority: 5,
-    description: '暴力の描写、自傷行為、危険な行為の推奨など',
-  },
-  {
-    value: 'hate_speech' as ReportCategory,
-    label: 'ヘイトスピーチ',
-    icon: <ErrorOutline color="error" />,
-    priority: 5,
-    description: '差別的な発言、特定のグループへの攻撃など',
-  },
-  {
-    value: 'misinformation' as ReportCategory,
-    label: '誤情報',
-    icon: <ErrorOutline />,
-    priority: 3,
-    description: '明らかに虚偽の情報、陰謀論など',
-  },
-  {
-    value: 'child_safety' as ReportCategory,
-    label: '児童の安全',
-    icon: <ChildCare color="error" />,
-    priority: 5,
-    description: '未成年者に関する不適切なコンテンツ',
-  },
-  {
-    value: 'fraud' as ReportCategory,
-    label: '詐欺や金銭的被害',
-    icon: <MonetizationOn color="error" />,
-    priority: 5,
-    description: '金銭的詐欺、フィッシング、なりすましなど',
-  },
-  {
-    value: 'copyright' as ReportCategory,
-    label: '著作権侵害',
-    icon: <Copyright />,
-    priority: 2,
-    description: '無断転載、著作権違反など',
-  },
-  {
-    value: 'inappropriate' as ReportCategory,
-    label: '不適切なコンテンツ',
-    icon: <SecurityOutlined />,
-    priority: 3,
-    description: '性的なコンテンツ、グロテスクな内容など',
-  },
-  {
-    value: 'other' as ReportCategory,
-    label: 'その他',
-    icon: <Flag />,
+    id: 'SPAM',
+    label: 'スパム・広告',
+    description: '無関係な広告や繰り返しの投稿',
     priority: 1,
-    description: '上記に該当しない問題',
+    icon: <Warning sx={{ fontSize: 20 }} />
   },
+  {
+    id: 'HARASSMENT',
+    label: 'いじめ・嫌がらせ',
+    description: '他のユーザーへの攻撃的な行為',
+    priority: 4,
+    icon: <ReportProblem sx={{ fontSize: 20 }} />
+  },
+  {
+    id: 'VIOLENCE',
+    label: '暴力的な内容',
+    description: '暴力を助長または描写する内容',
+    priority: 5,
+    icon: <ReportProblem sx={{ fontSize: 20, color: 'error.main' }} />
+  },
+  {
+    id: 'HATE_SPEECH',
+    label: 'ヘイトスピーチ',
+    description: '差別的または憎悪を煽る内容',
+    priority: 5,
+    icon: <ReportProblem sx={{ fontSize: 20, color: 'error.main' }} />
+  },
+  {
+    id: 'MISINFORMATION',
+    label: '誤情報・デマ',
+    description: '虚偽の情報や誤解を招く内容',
+    priority: 2,
+    icon: <Info sx={{ fontSize: 20 }} />
+  },
+  {
+    id: 'INAPPROPRIATE',
+    label: '不適切な内容',
+    description: '性的または不快な内容',
+    priority: 3,
+    icon: <Warning sx={{ fontSize: 20 }} />
+  },
+  {
+    id: 'COPYRIGHT',
+    label: '著作権侵害',
+    description: '他者の知的財産権を侵害する内容',
+    priority: 2,
+    icon: <Info sx={{ fontSize: 20 }} />
+  },
+  {
+    id: 'OTHER',
+    label: 'その他',
+    description: '上記に該当しない問題',
+    priority: 1,
+    icon: <Info sx={{ fontSize: 20 }} />
+  }
 ];
 
-const steps = ['通報対象の確認', '理由の選択', '詳細と送信'];
+const STEPS = ['理由を選択', '詳細を入力', '確認・送信'];
 
 export default function ReportDialog({
   open,
   onClose,
-  target,
-  currentUserId,
-  onSuccess,
+  targetId,
+  targetType,
+  targetContent,
+  reporterId
 }: ReportDialogProps) {
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState<ReportCategory | ''>('');
+  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [reportId, setReportId] = useState<string | null>(null);
+
+  const selectedCategory = REPORT_CATEGORIES.find(c => c.id === category);
 
   const handleNext = () => {
-    if (activeStep === 0) {
-      setActiveStep(1);
-    } else if (activeStep === 1 && selectedCategory) {
-      setActiveStep(2);
-    } else if (activeStep === 2) {
-      handleSubmit();
+    if (activeStep === 0 && !category) {
+      setError('通報理由を選択してください');
+      return;
     }
+    if (activeStep === 1 && description.length < 10) {
+      setError('詳細を10文字以上入力してください');
+      return;
+    }
+    setError(null);
+    setActiveStep(prev => prev + 1);
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  };
-
-  const handleReset = () => {
-    setActiveStep(0);
-    setSelectedCategory('');
-    setDescription('');
     setError(null);
-    setSuccess(false);
-    setReportId(null);
-  };
-
-  const handleClose = () => {
-    handleReset();
-    onClose();
+    setActiveStep(prev => prev - 1);
   };
 
   const handleSubmit = async () => {
-    if (!selectedCategory) return;
-
-    setSubmitting(true);
+    setLoading(true);
     setError(null);
 
     try {
       const response = await fetch('/api/reports', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          targetType: target.type,
-          targetId: target.id,
-          category: selectedCategory,
+          targetId,
+          targetType,
+          category,
           description,
-          reporterId: currentUserId,
-          targetAuthorId: target.authorId,
-        }),
+          reporterId,
+          metadata: {
+            targetContent: targetContent?.substring(0, 200),
+            timestamp: new Date().toISOString()
+          }
+        })
       });
 
       const data = await response.json();
@@ -219,271 +171,254 @@ export default function ReportDialog({
         throw new Error(data.error || '通報の送信に失敗しました');
       }
 
-      setReportId(data.reportId);
       setSuccess(true);
-      
-      if (onSuccess) {
-        onSuccess(data.reportId);
-      }
-
-      // 3秒後に自動的に閉じる
       setTimeout(() => {
-        handleClose();
-      }, 3000);
+        handleReset();
+        onClose();
+      }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : '通報の送信に失敗しました');
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const getTargetTypeLabel = () => {
-    switch (target.type) {
-      case 'post':
-        return '投稿';
-      case 'comment':
-        return 'コメント';
-      case 'user':
-        return 'ユーザー';
-      default:
-        return 'コンテンツ';
-    }
+  const handleReset = () => {
+    setActiveStep(0);
+    setCategory('');
+    setDescription('');
+    setError(null);
+    setSuccess(false);
   };
 
-  const getTargetIcon = () => {
-    switch (target.type) {
-      case 'post':
-        return <Article />;
-      case 'comment':
-        return <ChatBubble />;
-      case 'user':
-        return <PersonOff />;
-      default:
-        return <Flag />;
-    }
+  const getPriorityColor = (priority: number) => {
+    if (priority >= 4) return 'error';
+    if (priority >= 3) return 'warning';
+    return 'default';
   };
 
-  const renderStepContent = (step: number) => {
-    switch (step) {
-      case 0:
-        return (
-          <Box>
-            <Alert severity="info" sx={{ mb: 3 }}>
-              虚偽の通報は利用規約違反となり、アカウント制限の対象となる場合があります。
-            </Alert>
-            
-            <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-              <Box display="flex" alignItems="center" mb={1}>
-                {getTargetIcon()}
-                <Typography variant="subtitle1" ml={1}>
-                  通報対象: {getTargetTypeLabel()}
-                </Typography>
-              </Box>
-              
-              {target.authorName && (
-                <Typography variant="body2" color="text.secondary" mb={1}>
-                  投稿者: {target.authorName}
-                </Typography>
-              )}
-              
-              {target.content && (
-                <Box sx={{ p: 1, bgcolor: 'grey.100', borderRadius: 1, mt: 1 }}>
-                  <Typography variant="body2" sx={{ 
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    display: '-webkit-box',
-                    WebkitLineClamp: 3,
-                    WebkitBoxOrient: 'vertical',
-                  }}>
-                    {target.content}
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-
-            <Typography variant="body2" color="text.secondary">
-              この{getTargetTypeLabel()}を通報する理由を次のステップで選択してください。
-            </Typography>
-          </Box>
-        );
-
-      case 1:
-        return (
-          <Box>
-            <Typography variant="subtitle1" gutterBottom>
-              通報理由を選択してください
-            </Typography>
-            
-            <FormControl component="fieldset" fullWidth>
-              <RadioGroup
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value as ReportCategory)}
-              >
-                <List>
-                  {reportCategories.map((category) => (
-                    <ListItem
-                      key={category.value}
-                      sx={{
-                        border: 1,
-                        borderColor: selectedCategory === category.value ? 'primary.main' : 'grey.300',
-                        borderRadius: 1,
-                        mb: 1,
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: 'primary.light',
-                          bgcolor: 'action.hover',
-                        },
-                      }}
-                    >
-                      <FormControlLabel
-                        value={category.value}
-                        control={<Radio />}
-                        label=""
-                        sx={{ mr: 0 }}
-                      />
-                      <ListItemIcon>{category.icon}</ListItemIcon>
-                      <ListItemText
-                        primary={category.label}
-                        secondary={category.description}
-                      />
-                      {category.priority >= 4 && (
-                        <Chip
-                          label="優先"
-                          size="small"
-                          color="error"
-                          variant="outlined"
-                        />
-                      )}
-                    </ListItem>
-                  ))}
-                </List>
-              </RadioGroup>
-            </FormControl>
-          </Box>
-        );
-
-      case 2:
-        return (
-          <Box>
-            {success ? (
-              <Fade in={success}>
-                <Box textAlign="center" py={3}>
-                  <CheckCircle color="success" sx={{ fontSize: 60, mb: 2 }} />
-                  <Typography variant="h6" gutterBottom>
-                    通報を受け付けました
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" mb={2}>
-                    通報ID: {reportId}
-                  </Typography>
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    ご報告ありがとうございます。内容を確認し、適切に対処いたします。
-                    必要に応じて、登録されたメールアドレスに結果をお知らせします。
-                  </Alert>
-                </Box>
-              </Fade>
-            ) : (
-              <>
-                <Typography variant="subtitle1" gutterBottom>
-                  詳細情報（任意）
-                </Typography>
-                
-                <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: 'grey.50' }}>
-                  <Box display="flex" alignItems="center" mb={1}>
-                    {reportCategories.find(c => c.value === selectedCategory)?.icon}
-                    <Typography variant="subtitle2" ml={1}>
-                      選択した理由: {reportCategories.find(c => c.value === selectedCategory)?.label}
-                    </Typography>
-                  </Box>
-                </Paper>
-
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  variant="outlined"
-                  label="詳細説明（任意）"
-                  placeholder="問題の詳細や、管理者に伝えたい追加情報があれば記入してください"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  helperText={`${description.length}/500文字`}
-                  inputProps={{ maxLength: 500 }}
-                  sx={{ mb: 2 }}
-                />
-
-                <Alert severity="warning">
-                  送信後は取り消しできません。内容を確認の上、送信してください。
-                </Alert>
-
-                {error && (
-                  <Alert severity="error" sx={{ mt: 2 }}>
-                    {error}
-                  </Alert>
-                )}
-              </>
-            )}
-          </Box>
-        );
-
-      default:
-        return null;
-    }
+  const getPriorityLabel = (priority: number) => {
+    if (priority >= 5) return '緊急';
+    if (priority >= 4) return '高';
+    if (priority >= 3) return '中';
+    return '低';
   };
 
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
-      maxWidth="sm"
+      onClose={onClose}
+      maxWidth="md"
       fullWidth
       PaperProps={{
-        sx: { minHeight: 500 }
+        sx: { borderRadius: 2 }
       }}
     >
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
-          <Typography variant="h6">コンテンツの通報</Typography>
-          <IconButton onClick={handleClose} size="small">
+          <Typography variant="h6">
+            {targetType === 'post' && '投稿を通報'}
+            {targetType === 'comment' && 'コメントを通報'}
+            {targetType === 'user' && 'ユーザーを通報'}
+          </Typography>
+          <IconButton onClick={onClose} size="small">
             <Close />
           </IconButton>
         </Box>
       </DialogTitle>
-      
+
       <DialogContent>
-        <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
-          {steps.map((label) => (
-            <Step key={label}>
-              <StepLabel>{label}</StepLabel>
-            </Step>
-          ))}
-        </Stepper>
-
-        {renderStepContent(activeStep)}
-      </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        {!success && (
+        {success ? (
+          <Fade in={success}>
+            <Box
+              display="flex"
+              flexDirection="column"
+              alignItems="center"
+              justifyContent="center"
+              py={4}
+            >
+              <CheckCircle color="success" sx={{ fontSize: 64, mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                通報を受け付けました
+              </Typography>
+              <Typography variant="body2" color="text.secondary" align="center">
+                内容を確認し、適切な対応を行います。
+                ご協力ありがとうございました。
+              </Typography>
+            </Box>
+          </Fade>
+        ) : (
           <>
-            <Button
-              disabled={activeStep === 0 || submitting}
-              onClick={handleBack}
-            >
-              戻る
-            </Button>
-            <Box sx={{ flex: '1 1 auto' }} />
-            <Button
-              variant="contained"
-              onClick={handleNext}
-              disabled={
-                (activeStep === 1 && !selectedCategory) ||
-                submitting
-              }
-              endIcon={submitting && <CircularProgress size={20} />}
-            >
-              {activeStep === steps.length - 1 ? '送信' : '次へ'}
-            </Button>
+            <Stepper activeStep={activeStep} sx={{ mb: 3 }}>
+              {STEPS.map(label => (
+                <Step key={label}>
+                  <StepLabel>{label}</StepLabel>
+                </Step>
+              ))}
+            </Stepper>
+
+            {error && (
+              <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+                {error}
+              </Alert>
+            )}
+
+            {activeStep === 0 && (
+              <Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  最も適切な理由を選択してください
+                </Typography>
+                <RadioGroup value={category} onChange={(e) => setCategory(e.target.value)}>
+                  {REPORT_CATEGORIES.map(cat => (
+                    <Paper
+                      key={cat.id}
+                      variant="outlined"
+                      sx={{
+                        mb: 1,
+                        p: 1.5,
+                        cursor: 'pointer',
+                        borderColor: category === cat.id ? 'primary.main' : 'divider',
+                        borderWidth: category === cat.id ? 2 : 1,
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          bgcolor: 'action.hover'
+                        }
+                      }}
+                      onClick={() => setCategory(cat.id)}
+                    >
+                      <FormControlLabel
+                        value={cat.id}
+                        control={<Radio />}
+                        label={
+                          <Box>
+                            <Box display="flex" alignItems="center" gap={1}>
+                              {cat.icon}
+                              <Typography variant="subtitle2">{cat.label}</Typography>
+                              <Chip
+                                size="small"
+                                label={`優先度: ${getPriorityLabel(cat.priority)}`}
+                                color={getPriorityColor(cat.priority)}
+                                sx={{ ml: 'auto' }}
+                              />
+                            </Box>
+                            <Typography variant="caption" color="text.secondary">
+                              {cat.description}
+                            </Typography>
+                          </Box>
+                        }
+                        sx={{ width: '100%', m: 0 }}
+                      />
+                    </Paper>
+                  ))}
+                </RadioGroup>
+              </Box>
+            )}
+
+            {activeStep === 1 && (
+              <Box>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  詳細な情報を提供してください（任意ですが推奨）
+                </Typography>
+                <TextField
+                  multiline
+                  rows={4}
+                  fullWidth
+                  placeholder="具体的な問題点や背景情報を記入してください..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  variant="outlined"
+                  helperText={`${description.length}/500文字`}
+                  inputProps={{ maxLength: 500 }}
+                />
+                {targetContent && (
+                  <Box mt={2}>
+                    <Typography variant="caption" color="text.secondary">
+                      通報対象の内容：
+                    </Typography>
+                    <Paper variant="outlined" sx={{ p: 1, mt: 0.5 }}>
+                      <Typography variant="body2" noWrap>
+                        {targetContent}
+                      </Typography>
+                    </Paper>
+                  </Box>
+                )}
+              </Box>
+            )}
+
+            {activeStep === 2 && (
+              <Box>
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  虚偽の通報は利用規約違反となる場合があります
+                </Alert>
+                <Typography variant="subtitle2" gutterBottom>
+                  通報内容の確認
+                </Typography>
+                <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        通報理由：
+                      </Typography>
+                      <Typography variant="body1">
+                        {selectedCategory?.label}
+                      </Typography>
+                    </Box>
+                    {description && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          詳細：
+                        </Typography>
+                        <Typography variant="body2">
+                          {description}
+                        </Typography>
+                      </Box>
+                    )}
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        優先度：
+                      </Typography>
+                      <Chip
+                        size="small"
+                        label={getPriorityLabel(selectedCategory?.priority || 1)}
+                        color={getPriorityColor(selectedCategory?.priority || 1)}
+                      />
+                    </Box>
+                  </Box>
+                </Paper>
+              </Box>
+            )}
           </>
         )}
-      </DialogActions>
+      </DialogContent>
+
+      {!success && (
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={onClose} disabled={loading}>
+            キャンセル
+          </Button>
+          {activeStep > 0 && (
+            <Button onClick={handleBack} disabled={loading}>
+              戻る
+            </Button>
+          )}
+          {activeStep < STEPS.length - 1 && (
+            <Button variant="contained" onClick={handleNext} disabled={loading}>
+              次へ
+            </Button>
+          )}
+          {activeStep === STEPS.length - 1 && (
+            <Button
+              variant="contained"
+              color="error"
+              onClick={handleSubmit}
+              disabled={loading}
+              startIcon={loading && <CircularProgress size={20} />}
+            >
+              通報する
+            </Button>
+          )}
+        </DialogActions>
+      )}
     </Dialog>
   );
 }

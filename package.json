@@ -7,8 +7,11 @@
     "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "playwright test",
-    "test:ui": "playwright test --ui",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:integration": "vitest tests/integration",
+    "test:playwright": "playwright test",
     "analyze": "ANALYZE=true npm run build",
     "bundle-analyzer": "npx webpack-bundle-analyzer .next/static/chunks/ -p 3001"
   },
@@ -51,14 +54,22 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^15.5.2",
     "@playwright/test": "^1.40.0",
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/react": "^14.1.2",
+    "@testing-library/user-event": "^14.5.1",
+    "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/ui": "^1.0.4",
     "autoprefixer": "^10.4.0",
     "axios": "^1.11.0",
     "babel-plugin-import": "^1.13.8",
     "eslint": "^8.0.0",
     "eslint-config-next": "^15.0.0",
+    "jsdom": "^23.0.1",
+    "mongodb": "^6.3.0",
     "node-fetch": "^2.7.0",
     "postcss": "^8.4.0",
     "tailwindcss": "^3.4.0",
+    "vitest": "^1.0.4",
     "webpack-bundle-analyzer": "^4.10.2"
   }
 }
