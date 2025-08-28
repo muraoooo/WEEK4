@@ -28,9 +28,9 @@ import {
   Alert,
   CircularProgress,
   Skeleton,
-  Grid,
   LinearProgress
 } from '@mui/material';
+import Grid from '@mui/material/Grid2';
 import {
   Visibility,
   CheckCircle,
@@ -236,7 +236,7 @@ export default function PublicReportsManagement() {
       {/* 統計情報 */}
       {stats && (
         <Grid container spacing={2} sx={{ mb: 3 }}>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>
@@ -248,7 +248,7 @@ export default function PublicReportsManagement() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>
@@ -266,7 +266,7 @@ export default function PublicReportsManagement() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>
@@ -284,7 +284,7 @@ export default function PublicReportsManagement() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={6} md={3}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
             <Card>
               <CardContent>
                 <Typography color="textSecondary" gutterBottom>
@@ -482,19 +482,19 @@ export default function PublicReportsManagement() {
           {selectedReport && (
             <Box>
               <Grid container spacing={2}>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Typography variant="subtitle2">ID:</Typography>
                   <Typography variant="body2">{selectedReport._id}</Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Typography variant="subtitle2">カテゴリ:</Typography>
                   <Typography variant="body2">{selectedReport.category}</Typography>
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="subtitle2">説明:</Typography>
                   <Typography variant="body2">{selectedReport.description}</Typography>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Typography variant="subtitle2">優先度:</Typography>
                   <Chip 
                     label={`${selectedReport.priority} - ${getPriorityLabel(selectedReport.priority)}`}
@@ -502,7 +502,7 @@ export default function PublicReportsManagement() {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={6}>
+                <Grid size={6}>
                   <Typography variant="subtitle2">虚偽通報スコア:</Typography>
                   <Chip 
                     label={`${selectedReport.falseReportScore || 0}%`}
@@ -510,7 +510,7 @@ export default function PublicReportsManagement() {
                     size="small"
                   />
                 </Grid>
-                <Grid item xs={12}>
+                <Grid size={12}>
                   <Typography variant="subtitle2">作成日時:</Typography>
                   <Typography variant="body2">
                     {new Date(selectedReport.createdAt).toLocaleString()}
@@ -533,22 +533,22 @@ export default function PublicReportsManagement() {
                 <Box mt={2}>
                   <Typography variant="subtitle2" color="primary">解決情報:</Typography>
                   <Grid container spacing={1} mt={1}>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography variant="body2">
                         アクション: {selectedReport.resolution.action}
                       </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography variant="body2">
                         解決者: {selectedReport.resolution.resolvedBy}
                       </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography variant="body2">
                         解決日時: {new Date(selectedReport.resolution.resolvedAt).toLocaleString()}
                       </Typography>
                     </Grid>
-                    <Grid item xs={12}>
+                    <Grid size={12}>
                       <Typography variant="body2">
                         メモ: {selectedReport.resolution.notes}
                       </Typography>
