@@ -30,6 +30,8 @@ function LoginForm() {
     setLoading(true);
 
     try {
+      console.log('🔐 Starting login process...', { email });
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -38,24 +40,45 @@ function LoginForm() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await response.json();
+      console.log('📡 Login response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Login failed:', response.status, errorText);
+        
+        try {
+          const errorData = JSON.parse(errorText);
+          setError(errorData.error || `ログインに失敗しました (${response.status})`);
+        } catch {
+          setError(`ログインに失敗しました (${response.status}): ${errorText}`);
+        }
+        return;
+      }
 
-      if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Login successful:', { hasToken: !!data.token, userRole: data.user?.role });
+
+      if (data.success && data.token) {
         // ログイン成功 - トークンを統一的に保存
         localStorage.setItem('token', data.token);
         localStorage.setItem('auth-token', data.token); // 認証チェック用
-        localStorage.setItem('refreshToken', data.refreshToken);
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
         
         // クッキーにも保存（ミドルウェア用）
-        document.cookie = `access_token=${data.token}; path=/; secure; samesite=strict`;
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `access_token=${data.token}; path=/; ${isSecure ? 'secure;' : ''} samesite=lax`;
         
+        console.log('🎉 Redirecting to:', from);
         // リダイレクト
-        window.location.replace(from);
+        window.location.href = from;
       } else {
-        setError(data.error || 'ログインに失敗しました');
+        setError('ログイン処理でエラーが発生しました');
       }
     } catch (error) {
-      setError('ログイン中にエラーが発生しました');
+      console.error('❌ Login error:', error);
+      setError(`ログイン中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
     } finally {
       setLoading(false);
     }
@@ -64,7 +87,61 @@ function LoginForm() {
   // デモ用：管理者としてログイン
   const handleDemoLogin = () => {
     setEmail('admin@example.com');
-    setPassword('admin123');
+    setPassword('Admin123!@#');
+  };
+
+  // ワンクリックログイン
+  const handleOneClickLogin = async () => {
+    setError('');
+    setLoading(true);
+    
+    try {
+      console.log('🚀 One-click login started');
+      
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: 'admin@example.com', 
+          password: 'Admin123!@#' 
+        }),
+      });
+
+      console.log('📡 One-click login response:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ One-click login failed:', errorText);
+        setError('ワンクリックログインに失敗しました');
+        return;
+      }
+
+      const data = await response.json();
+      console.log('✅ One-click login successful');
+
+      if (data.success && data.token) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('auth-token', data.token);
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
+        
+        const isSecure = window.location.protocol === 'https:';
+        document.cookie = `access_token=${data.token}; path=/; ${isSecure ? 'secure;' : ''} samesite=lax`;
+        
+        console.log('🎉 One-click redirect to:', from);
+        window.location.href = from;
+      } else {
+        setError('ワンクリックログインでエラーが発生しました');
+      }
+    } catch (error) {
+      console.error('❌ One-click login error:', error);
+      setError('ワンクリックログインに失敗しました');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -105,19 +182,33 @@ function LoginForm() {
           <Box sx={{ 
             mt: 2, 
             p: 2, 
-            bgcolor: 'info.light', 
+            bgcolor: 'success.light', 
             borderRadius: 1,
             border: '1px solid',
-            borderColor: 'info.main'
+            borderColor: 'success.main'
           }}>
-            <Typography variant="subtitle2" color="info.dark" gutterBottom>
-              デモ用認証情報:
+            <Typography variant="subtitle2" color="success.dark" gutterBottom>
+              🎯 簡単ログイン方法:
             </Typography>
-            <Typography variant="body2" color="info.dark">
-              メール: admin@example.com
+            <Typography variant="body2" color="success.dark" sx={{ mb: 1 }}>
+              • 緑のボタンをクリックで即座にログイン
             </Typography>
-            <Typography variant="body2" color="info.dark">
-              パスワード: Admin123!@#
+            <Typography variant="body2" color="success.dark">
+              • または認証情報を自動入力してログイン
+            </Typography>
+          </Box>
+          
+          {/* 認証情報詳細 */}
+          <Box sx={{ 
+            mt: 1, 
+            p: 2, 
+            bgcolor: 'grey.100', 
+            borderRadius: 1,
+            border: '1px solid',
+            borderColor: 'grey.300'
+          }}>
+            <Typography variant="caption" color="text.secondary" display="block">
+              デモ用認証情報: admin@example.com / Admin123!@#
             </Typography>
           </Box>
 
@@ -155,17 +246,31 @@ function LoginForm() {
               placeholder="Admin123!@#"
             />
             
+            {/* ワンクリックログインボタン */}
+            <Button
+              type="button"
+              fullWidth
+              variant="contained"
+              color="success"
+              sx={{ mt: 2, mb: 1 }}
+              onClick={handleOneClickLogin}
+              disabled={loading}
+            >
+              {loading ? <CircularProgress size={24} /> : '🚀 管理者として即座にログイン'}
+            </Button>
+            
             {/* デモ用オートフィルボタン */}
             <Button
               type="button"
               fullWidth
               variant="outlined"
               color="info"
-              sx={{ mt: 2 }}
+              sx={{ mt: 1 }}
               onClick={() => {
                 setEmail('admin@example.com');
                 setPassword('Admin123!@#');
               }}
+              disabled={loading}
             >
               デモ用認証情報を自動入力
             </Button>
