@@ -307,8 +307,29 @@ export async function GET(request: NextRequest) {
   const client = new MongoClient(MONGODB_URI);
   
   try {
-    // 管理者権限の確認
-    const isAdmin = request.headers.get('x-admin-secret') === config.adminSecretKey;
+    // 管理者権限の確認（トークンまたは秘密鍵）
+    const adminToken = request.headers.get('x-admin-token');
+    const adminSecret = request.headers.get('x-admin-secret');
+    
+    let isAdmin = false;
+    
+    // トークンベースの認証を優先
+    if (adminToken) {
+      try {
+        const jwt = await import('jsonwebtoken');
+        const decoded = jwt.default.verify(adminToken, config.adminSecretKey) as any;
+        isAdmin = decoded.purpose === 'admin-api' && 
+                  (Date.now() - decoded.timestamp) < 5 * 60 * 1000;
+      } catch {
+        isAdmin = false;
+      }
+    }
+    
+    // 秘密鍵による認証（フォールバック）
+    if (!isAdmin && adminSecret) {
+      isAdmin = adminSecret === config.adminSecretKey;
+    }
+    
     if (!isAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
