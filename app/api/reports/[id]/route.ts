@@ -7,12 +7,12 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://adimin:gpt5love@cl
 // PUT: 通報を更新（権限チェックなし）
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const client = new MongoClient(MONGODB_URI);
   
   try {
-    const reportId = params.id;
+    const { id: reportId } = await params;
     
     if (!reportId || !ObjectId.isValid(reportId)) {
       return NextResponse.json(
@@ -120,12 +120,12 @@ export async function PUT(
 // GET: 特定の通報を取得（権限チェックなし）
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const client = new MongoClient(MONGODB_URI);
   
   try {
-    const reportId = params.id;
+    const { id: reportId } = await params;
     
     if (!reportId || !ObjectId.isValid(reportId)) {
       return NextResponse.json(
