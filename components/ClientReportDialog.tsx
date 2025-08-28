@@ -402,9 +402,9 @@ export default function ClientReportDialog({
                         </Typography>
                         <Chip
                           size="small"
-                          label={`優先度 ${selectedCat?.priority}/10`}
-                          color={selectedCat?.priority >= 7 ? 'error' : 
-                                selectedCat?.priority >= 4 ? 'warning' : 'default'}
+                          label={`優先度 ${selectedCat?.priority || 0}/10`}
+                          color={selectedCat?.priority && selectedCat.priority >= 7 ? 'error' : 
+                                selectedCat?.priority && selectedCat.priority >= 4 ? 'warning' : 'default'}
                         />
                       </Box>
                     </Box>
