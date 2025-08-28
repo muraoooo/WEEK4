@@ -5,11 +5,32 @@
 
 import mongoose from 'mongoose';
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define the MONGODB_URI environment variable inside .env.local');
+// MongoDB URI を環境変数から構築（Vercel @ 問題の回避）
+function getMongoDBUri() {
+  // 方法1: 通常のMONGODB_URI（URLエンコード版）
+  if (process.env.MONGODB_URI) {
+    return process.env.MONGODB_URI;
+  }
+  
+  // 方法2: 分割した環境変数から構築
+  const user = process.env.MONGODB_USER;
+  const password = process.env.MONGODB_PASSWORD;
+  const host = process.env.MONGODB_HOST;
+  const database = process.env.MONGODB_DATABASE;
+  
+  if (user && password && host && database) {
+    return `mongodb+srv://${user}:${password}@${host}/${database}?retryWrites=true&w=majority&appName=Cluster0`;
+  }
+  
+  // 方法3: Base64エンコード版
+  if (process.env.MONGODB_URI_BASE64) {
+    return Buffer.from(process.env.MONGODB_URI_BASE64, 'base64').toString('utf-8');
+  }
+  
+  throw new Error('Please define MongoDB connection environment variables (MONGODB_URI or MONGODB_USER/PASSWORD/HOST/DATABASE)');
 }
+
+const MONGODB_URI = getMongoDBUri();
 
 /**
  * Global is used here to maintain a cached connection across hot reloads
